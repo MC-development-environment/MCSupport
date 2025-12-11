@@ -1,0 +1,5 @@
+{"level":"warn","message":"SMTP credentials not found. Falling back to mock email service.","timestamp":"2025-12-11T04:16:22.003Z"}
+{"level":"info","message":"[Assistant] Processed ticket CN-1765426581 with actions.","timestamp":"2025-12-11T04:16:22.048Z"}
+{"level":"warn","message":"SMTP credentials not found. Falling back to mock email service.","timestamp":"2025-12-11T06:32:26.097Z"}
+{"level":"info","message":"[Ticket] Sent new message notification to client@example.com (CC: cc1@example.com) for ticket CN-123","timestamp":"2025-12-11T07:35:23.400Z"}
+{"level":"info","message":"[Ticket] Sent new message notification to client@example.com (CC: cc1@example.com) for ticket CN-123","timestamp":"2025-12-11T07:35:33.276Z"}

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: mc_support_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://admin:password@db:5432/mcsupport
+      - AUTH_SECRET=openssl_rand_base64_32_generated_secret
+      - NEXTAUTH_URL=http://localhost:3000
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      - db
+    networks:
+      - mc_network
+
+  db:
+    container_name: mc_support_db
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mcsupport
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - mc_network
+
+volumes:
+  db_data:
+
+
+networks:
+  mc_network:

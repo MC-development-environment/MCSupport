@@ -1,0 +1,272 @@
+import { getTranslations } from 'next-intl/server';
+import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
+import { Link } from '@/i18n/routing';
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { format } from "date-fns"
+import { es, enUS } from "date-fns/locale"
+import { ChevronLeft, User, AlertCircle, Flag, Users, History, LayoutDashboard } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { TicketStatusUpdater } from "@/components/admin/ticket-status-updater"
+import { TicketAssigner } from "@/components/admin/ticket-assigner"
+import { AuditLogTimeline } from "@/components/admin/audit-log-timeline"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StatusBadge } from "@/components/status-badge"
+import { PriorityBadge } from "@/components/priority-badge"
+import { SentimentBadge } from "@/components/sentiment-badge"
+import { AttachmentSection } from "@/components/attachments/attachment-section"
+import { TicketConversation } from "@/components/portal/ticket-conversation"
+import { getMessages } from "@/actions/ticket-actions"
+
+
+interface Props {
+  params: Promise<{
+    ticketId: string;
+    locale: string;
+  }>
+}
+
+export default async function TicketDetailPage({ params }: Props) {
+  const resolvedParams = await params;
+  const { ticketId } = resolvedParams;
+  const t = await getTranslations('Admin.TicketDetail');
+
+  const ticket = await prisma.case.findUnique({
+    where: { id: ticketId },
+    include: {
+      user: true,
+      assignedTo: true,
+      attachments: {
+        orderBy: { createdAt: 'desc' },
+        include: {
+          uploader: {
+            select: { name: true, email: true }
+          }
+        }
+      }
+    }
+  })
+
+  const session = await auth();
+
+
+
+  if (!ticket) {
+    return <div>Ticket not found</div>
+  }
+
+  // Access Control
+  if (session?.user?.role !== 'MANAGER') {
+    const isOwner = ticket.userId === session?.user?.id;
+    const isAssigned = ticket.assignedToId === session?.user?.id;
+
+    if (!isOwner && !isAssigned) {
+      return (
+        <div className="flex h-[50vh] flex-col items-center justify-center gap-2">
+          <AlertCircle className="h-8 w-8 text-destructive" />
+          <h2 className="text-xl font-semibold">Acceso Denegado</h2>
+          <p className="text-muted-foreground">No tienes permisos para ver este ticket.</p>
+          <Button asChild variant="outline" className="mt-4">
+            <Link href="/admin/tickets">{t('back')}</Link>
+          </Button>
+        </div>
+      )
+    }
+  }
+
+  // RBAC Assignment Filtering
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let departmentFilter: any = {};
+
+  if (session?.user?.id) {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true, departmentId: true }
+    });
+
+    if (currentUser && currentUser.role !== 'MANAGER' && currentUser.role !== 'SERVICE_OFFICER') {
+      if (currentUser.departmentId) {
+        if (currentUser.role === 'TEAM_LEAD') {
+          departmentFilter = {
+            departmentId: currentUser.departmentId,
+            role: { in: ['TEAM_LEAD', 'TECHNICAL_LEAD', 'TECHNICIAN'] }
+          }
+        } else if (currentUser.role === 'TECHNICAL_LEAD') {
+          // Technical Lead only assigns to Technicians in their dept
+          departmentFilter = {
+            departmentId: currentUser.departmentId,
+            role: { in: ['TECHNICAL_LEAD', 'TECHNICIAN'] }
+          };
+        } else {
+          departmentFilter = { departmentId: currentUser.departmentId };
+        }
+      } else {
+        // User has no department but is not manager - prevent viewing other agents
+        departmentFilter = { id: 'none' };
+      }
+    }
+  }
+
+  // Fetch agents/admins for assignment
+  const agents = await prisma.user.findMany({
+    where: {
+      role: { in: ['MANAGER', 'SERVICE_OFFICER', 'TEAM_LEAD', 'TECHNICAL_LEAD', 'TECHNICIAN', 'CONSULTANT', 'DEVELOPER'] },
+      ...departmentFilter
+    },
+    select: { id: true, name: true, email: true }
+  })
+
+  // Fetch Audit Logs
+  const auditLogs = await prisma.auditLog.findMany({
+    where: {
+      entity: 'TICKET',
+      entityId: ticketId
+    },
+    include: {
+      actor: { select: { name: true, email: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  // Fetch Messages for Conversation
+  const messages = await getMessages(ticketId);
+
+
+
+  return (
+    <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="icon" className="h-7 w-7">
+            <Link href="/admin/tickets">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">{t('back')}</span>
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="icon" className="h-7 w-7">
+            <Link href="/admin">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="sr-only">{t('dashboard')}</span>
+            </Link>
+          </Button>
+        </div>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+          {t('title')} {ticket.ticketNumber}
+        </h1>
+        <div className="hidden items-center gap-2 md:ml-auto md:flex">
+          <StatusBadge status={ticket.status} />
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+          <Tabs defaultValue="details">
+            <TabsList>
+              <TabsTrigger value="details">{t('details')}</TabsTrigger>
+              <TabsTrigger value="conversation">{t('conversation') || "Mensajes"}</TabsTrigger>
+              <TabsTrigger value="history">{t('history')}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="details">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle>{ticket.title}</CardTitle>
+                  <CardDescription className="max-w-lg text-balance leading-relaxed">
+                    {t('createdAt')} {format(ticket.createdAt, "PPP p", { locale: resolvedParams.locale === 'es' ? es : enUS })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6">
+                    <div className="grid gap-3">
+                      <h3 className="font-semibold">{t('description')}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {ticket.description}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="conversation">
+              <div className="h-[600px]">
+                <TicketConversation
+                  ticketId={ticket.id}
+                  initialMessages={messages as any}
+                  userEmail={session?.user?.email}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="history">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    {t('auditLog')}
+                  </CardTitle>
+                  <CardDescription>{t('auditLogDesc')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AuditLogTimeline logs={auditLogs} emptyText={t('noActivity')} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+        <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('details')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6">
+                <div className="grid gap-3">
+                  <span className="text-muted-foreground text-xs font-medium">{t('customer')}</span>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">{ticket.user.name || ticket.user.email}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{ticket.user.email}</div>
+                </div>
+                <Separator />
+                <div className="grid gap-3">
+                  <span className="text-muted-foreground text-xs font-medium">{t('assignee')}</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">
+                      {ticket.assignedTo ? (ticket.assignedTo.name || ticket.assignedTo.email) : t('unassigned')}
+                    </span>
+                  </div>
+                  <TicketAssigner
+                    ticketId={ticket.id}
+                    currentAssigneeId={ticket.assignedToId}
+                    users={agents}
+                  />
+                </div>
+                <Separator />
+                <div className="grid gap-3">
+                  <span className="text-muted-foreground text-xs font-medium">{t('priority')}</span>
+                  <div className="flex items-center gap-2">
+                    <PriorityBadge priority={ticket.priority} />
+                  </div>
+                </div>
+                <Separator />
+                <div className="grid gap-3">
+                  <span className="text-muted-foreground text-xs font-medium">{t('sentiment')}</span>
+                  <div className="flex items-center gap-2">
+                    <SentimentBadge sentiment={ticket.sentiment as any} />
+                  </div>
+                </div>
+                <Separator />
+                <div className="grid gap-3">
+                  <span className="text-muted-foreground text-xs font-medium">{t('status')}</span>
+                  <TicketStatusUpdater ticketId={ticket.id} currentStatus={ticket.status} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <AttachmentSection ticketId={ticket.id} attachments={ticket.attachments} />
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MCSupport - Portal de Soporte Multicomputos
 
-## Getting Started
+MCSupport es una plataforma moderna de gestión de tickets y soporte técnico diseñada para Multicomputos S.R.L. Ofrece un panel administrativo robusto, internacionalización completa y capacidad de integración con ERPs como Netsuite.
 
-First, run the development server:
+## Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+*   **Panel Administrativo**: Dashboard con métricas, gestión de tickets y base de conocimiento.
+*   **Internacionalización (i18n)**: Soporte completo para Inglés (`/en`) y Español (`/es`).
+*   **Diseño Responsivo**: Interfaz optimizada para móviles y escritorio con Branding corporativo.
+*   **Integración API**: Endpoint seguro para recibir tickets desde sistemas externos (Netsuite).
+*   **PWA**: Instalable como aplicación web progresiva.
+*   **Modo Oscuro**: Soporte nativo para temas claro y oscuro.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   **Framework**: Next.js 16 (App Router)
+*   **Lenguaje**: TypeScript
+*   **Base de Datos**: PostgreSQL / Prisma ORM
+*   **Estilos**: Tailwind CSS + Shadcn/UI
+*   **Autenticación**: Auth.js (NextAuth v5)
+*   **Internacionalización**: next-intl
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Configuración Local
 
-## Learn More
+1.  **Clonar el repositorio**:
+    ```bash
+    git clone <repo-url>
+    cd mc_support
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Instalar dependencias**:
+    ```bash
+    npm install
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Configurar Variables de Entorno**:
+    Crear un archivo `.env` en la raíz basado en `.env.example`:
+    ```env
+    DATABASE_URL="postgresql://user:password@localhost:5432/mc_support"
+    AUTH_SECRET="your-secret-key"
+    NETSUITE_API_KEY="ns-secret-123"
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4.  **Inicializar Base de Datos**:
+    ```bash
+    npx prisma migrate dev
+    npx prisma db seed
+    ```
+    *Esto creará un usuario administrador por defecto: `admin@multicomputos.com` / `admin123`*
 
-## Deploy on Vercel
+5.  **Correr Servidor de Desarrollo**:
+    ```bash
+    npm run dev
+    ```
+    Acceder a `http://localhost:3000`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Estructura del Proyecto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*   `app/[locale]/(admin)`: Rutas protegidas del panel administrativo.
+*   `app/[locale]/(portal)`: Portal de autoservicio para clientes.
+*   `app/api/integration`: Endpoints para integraciones externas.
+*   `components`: Componentes reutilizables UI y de negocio.
+*   `messages`: Archivos de traducción JSON.
+*   `prisma`: Esquema de base de datos y scripts de semilla.
+
+## Documentación
+
+El proyecto cuenta con documentación detallada para diferentes perfiles:
+
+*   📘 **[Manual de Usuario](doc/Manual_Usuario.md)**: Guía paso a paso con capturas de pantalla sobre cómo utilizar el sistema, gestionar tickets y ver reportes.
+*   🛠️ **[Guía Técnica](doc/Guia_Tecnica.md)**: Documentación profunda para desarrolladores sobre arquitectura, base de datos, seguridad y despliegue.
+
+## Contribuir
+
+Si deseas contribuir al proyecto, por favor lee nuestra [Guía de Contribución](CONTRIBUTING.md).
+
+---
+© 2025 Multicomputos S.R.L. - Todos los derechos reservados.
