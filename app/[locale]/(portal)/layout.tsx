@@ -1,18 +1,19 @@
 import { Link } from '@/i18n/routing';
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Package2, LogOut } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { Menu, Package2 } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
-import { logout } from "@/actions/auth-actions"
-import { getTranslations } from "next-intl/server"
+import { auth } from "@/auth"
+import { UserNav } from "@/components/portal/user-nav"
 
 export default async function PortalLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const t = await getTranslations('Navigation');
+    const session = await auth();
+
     return (
         <div className="flex h-screen w-full flex-col overflow-y-auto bg-background">
             <header className="sticky top-0 z-30 border-b bg-background">
@@ -25,6 +26,7 @@ export default async function PortalLayout({
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="sm:max-w-xs">
+                            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                             <nav className="grid gap-6 text-lg font-medium">
                                 <Link
                                     href="#"
@@ -66,12 +68,7 @@ export default async function PortalLayout({
                     <div className="flex items-center gap-2">
                         <LanguageToggle />
                         <ModeToggle />
-                        <form action={logout}>
-                            <Button variant="ghost" size="icon" title={t('logout')}>
-                                <LogOut className="h-5 w-5" />
-                                <span className="sr-only">{t('logout')}</span>
-                            </Button>
-                        </form>
+                        <UserNav user={session?.user || {}} />
                     </div>
                 </div>
             </header>

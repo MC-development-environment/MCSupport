@@ -10,7 +10,9 @@
     },
     "Common": {
         "loading": "Loading...",
-        "error": "Something went wrong"
+        "error": "Something went wrong",
+        "article": "article",
+        "articles": "articles"
     },
     "Navigation": {
         "admin": "Admin",
@@ -38,18 +40,38 @@
             "POSITIVE": "Positive",
             "NEUTRAL": "Neutral",
             "NEGATIVE": "Negative"
+        },
+        "Role": {
+            "MANAGER": "Manager",
+            "SERVICE_OFFICER": "Service Officer",
+            "TEAM_LEAD": "Team Lead",
+            "TECHNICAL_LEAD": "Technical Lead",
+            "TECHNICIAN": "Technician",
+            "CONSULTANT": "Consultant",
+            "DEVELOPER": "Developer",
+            "VIRTUAL_ASSISTANT": "Virtual Assistant",
+            "CLIENT": "Client",
+            "USER": "User"
         }
     },
     "Admin": {
         "dashboard": "Dashboard",
         "tickets": "Tickets",
         "kb": "Knowledge Base",
+        "backToKb": "Back to Knowledge Base",
         "settings": "Settings",
+        "security": "Security",
         "password": "Password",
+        "email": "Email",
+        "name": "Name",
+        "role": "Role",
         "save": "Save",
+        "success": "Profile updated successfully",
         "settingsTitle": "System Settings",
-        "comingSoon": "Feature coming soon.",
-        "success": "Profile updated successfully.",
+        "settingsDesc": "Manage general options and profile.",
+        "profileInfo": "Profile Information",
+        "profileDesc": "Update your personal information and password.",
+        "systemConfig": "System Configuration",
         "totalTickets": "Total Tickets",
         "openCases": "Open Cases",
         "noRecentTickets": "No recent tickets found.",
@@ -66,9 +88,23 @@
         "ticketTitle": "Title",
         "customer": "Customer",
         "priority": "Priority",
+        "category": "Category",
         "status": "Status",
         "users": "Users",
         "reports": "Reports",
+        "searchPlaceholder": "Search tickets...",
+        "selected": "selected",
+        "bulkSuccess": "{count} tickets updated successfully",
+        "bulkError": "Failed to update tickets",
+        "UserDialog": {
+            "selectRole": "Select role",
+            "selectDepartment": "Select department",
+            "created": "User created successfully",
+            "updated": "User updated successfully"
+        },
+        "GlobalSearch": {
+            "placeholder": "Type to search..."
+        },
         "Status": {
             "title": "System Status",
             "database": "Database",
@@ -85,7 +121,7 @@
         },
         "Users": {
             "title": "User Management",
-            "description": "Manage staff and client accounts.",
+            "description": "Manage access and system roles.",
             "create": "New User",
             "edit": "Edit User",
             "delete": "Delete",
@@ -100,7 +136,33 @@
             "actions": "Actions",
             "save": "Save",
             "saving": "Saving...",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "usersCount": "Users ({count})",
+            "tableTitle": "Users",
+            "searchPlaceholder": "Search users...",
+            "usersList": "Complete list of registered users.",
+            "UserDialog": {
+                "selectRole": "Select role",
+                "selectDepartment": "Select department",
+                "editDescription": "Update user details.",
+                "createDescription": "Add new staff or client.",
+                "passwordOptional": "Password (Optional)",
+                "passwordLabel": "Password",
+                "none": "-- None --",
+                "skills": "Expertise Tags",
+                "skillsPlaceholder": "netsuite, scripting, api, billing",
+                "skillsHint": "Comma-separated - used for smart ticket assignment",
+                "created": "User created successfully",
+                "updated": "User updated successfully"
+            }
+        },
+        "Pagination": {
+            "showing": "Showing",
+            "of": "of",
+            "records": "records",
+            "page": "Page",
+            "previous": "Previous",
+            "next": "Next"
         },
         "Attachments": {
             "title": "Attachments",
@@ -118,9 +180,15 @@
             "daily": "Daily Report",
             "weekly": "Weekly Report",
             "monthly": "Monthly Report",
+            "quarterly": "Quarterly Report",
+            "semester": "Semester Report",
             "yearly": "Yearly Report",
             "download": "Download CSV",
             "downloadDesc": "Download ticket history.",
+            "selectPeriod": "Select Period",
+            "filterByEmployee": "Filter by employee",
+            "allEmployees": "All employees",
+            "selectEmployee": "Select employee...",
             "Analytics": {
                 "totalTickets": "Total Tickets",
                 "period": "In selected period",
@@ -143,28 +211,48 @@
                     "7d": "7 Days",
                     "30d": "30 Days",
                     "90d": "Quarter",
+                    "180d": "Semester",
+                    "365d": "Yearly",
                     "all": "All Time"
-                }
-            }
+                },
+                "slaCompliance": "% SLA Compliance",
+                "customerSat": "Customer Sat",
+                "ratings": "Ratings",
+                "target": "Target",
+                "overdue": "Overdue Tickets",
+                "requiresAction": "Requires immediate action"
+            },
+            "sendReport": "Send Report",
+            "sendReportTitle": "Send Report",
+            "sendReportDesc": "Send your activity report to your supervisor",
+            "recipient": "Recipient",
+            "selectRecipient": "Select recipient",
+            "selectRecipientError": "Select a recipient",
+            "noRecipients": "No recipients available for your role",
+            "period": "Period",
+            "additionalMessage": "Additional message",
+            "messagePlaceholder": "Add comments or notes...",
+            "cancel": "Cancel",
+            "send": "Send",
+            "loading": "Loading...",
+            "from": "From",
+            "department": "Department"
         },
         "date": "Date",
         "noTickets": "No tickets found.",
         "kbDescription": "Manage articles and categories.",
         "addArticle": "Add Article",
-        "category": "Category",
+        "kbCategory": "Category",
         "author": "Author",
         "lastUpdated": "Last Updated",
         "actions": "Actions",
         "published": "Published",
         "draft": "Draft",
         "edit": "Edit",
+        "view": "View",
+        "updatedBy": "Updated by",
+        "createdBy": "Created by",
         "noArticles": "No articles found. Start by creating one.",
-        "profileInfo": "Profile Information",
-        "profileDesc": "Update your account details.",
-        "name": "Name",
-        "email": "Email",
-        "role": "Role",
-        "systemConfig": "System Configuration",
         "systemConfigDesc": "Global application settings (Name, email, limits).",
         "Settings": {
             "title": "Global Configuration",
@@ -183,7 +271,14 @@
             "save": "Save Changes",
             "saving": "Saving...",
             "success": "Configuration updated successfully.",
-            "error": "Error updating configuration."
+            "error": "Error updating configuration.",
+            "slaTitle": "Service Level Agreements (SLA)",
+            "slaDesc": "Configure maximum response time in hours.",
+            "slaLow": "Low Priority (Hours)",
+            "slaMedium": "Medium Priority (Hours)",
+            "slaHigh": "High Priority (Hours)",
+            "slaCritical": "Critical Priority (Hours)",
+            "workDays": "Work Days"
         },
         "tablePlaceholder": "No recent transactions.",
         "sidebarTitle": "Multicomputos",
@@ -191,6 +286,39 @@
         "viewAll": "View All",
         "fromLastMonth": "from last month",
         "sinceLastHour": "since last hour",
+        "KBCategories": {
+            "Knowledge Base": "Knowledge Base",
+            "General": "General",
+            "Billing": "Billing",
+            "Technical": "Technical",
+            "NetSuite": "NetSuite",
+            "Artificial Intelligence": "Artificial Intelligence",
+            "Software Development": "Software Development",
+            "Human Resources": "Human Resources",
+            "Marketing": "Marketing",
+            "Database": "Database",
+            "Information Technology": "Information Technology",
+            "Accounting": "Accounting",
+            "Business Management": "Business Management",
+            "Security": "Security",
+            "MCSupport": "All about MCSupport"
+        },
+        "KBCategoryDescriptions": {
+            "General": "General questions",
+            "Billing": "Invoices, payments and electronic invoicing",
+            "Technical": "Technical support",
+            "NetSuite": "NetSuite ERP related articles",
+            "Artificial Intelligence": "AI and machine learning",
+            "Software Development": "Programming and development",
+            "Human Resources": "HR and personnel management",
+            "Marketing": "Marketing and advertising",
+            "Database": "Database management and SQL",
+            "Information Technology": "IT infrastructure and systems",
+            "Accounting": "Accounting and finance",
+            "Business Management": "Business operations and management",
+            "Security": "Cybersecurity and data protection",
+            "MCSupport": "Everything about the MCSupport system"
+        },
         "Article": {
             "title": "Title",
             "titlePlaceholder": "How to reset password?",
@@ -222,7 +350,15 @@
             "unassigned": "Unassigned",
             "priority": "Priority",
             "status": "Status",
-            "sentiment": "Sentiment"
+            "sentiment": "Sentiment",
+            "category": "Category",
+            "reopen": "Reopen Case",
+            "reopenDesc": "Select department and user to reassign",
+            "selectDepartment": "Select department",
+            "selectUser": "Select user",
+            "reopenConfirm": "Reopen",
+            "reopenSuccess": "Case reopened successfully",
+            "closedReadOnly": "This case is closed."
         }
     },
     "Error": {
@@ -293,6 +429,7 @@
         },
         "kbSubtitle": "Find answers to common questions and learn how to use MCSupport.",
         "lastUpdatedLabel": "Last updated:",
+        "backToKb": "Back to Knowledge Base",
         "searchArticles": "Search articles...",
         "noArticlesFound": "No articles found matching",
         "actions": "Actions",
@@ -301,8 +438,39 @@
             "upload": "Upload Files",
             "limitReached": "Limit reached",
             "sizeError": "File exceeds 10MB",
-            "totalSizeError": "Total files size cannot exceed 20MB"
-        }
+            "totalSizeError": "Total files size cannot exceed 30MB",
+            "info": {
+                "maxImages": "Max. 10 images",
+                "maxPerFile": "10MB/file",
+                "maxTotal": "30MB total"
+            }
+        },
+        "Survey": {
+            "title": "Customer Satisfaction Survey",
+            "description": "Your opinion matters to us. Please rate the service received on this ticket.",
+            "ratingRequired": "Please select a rating",
+            "successMessage": "Thank you for your feedback",
+            "errorMessage": "Error submitting survey",
+            "thankYou": "Thank you for your feedback!",
+            "feedbackReceived": "We have received your comments successfully.",
+            "backToTickets": "Back to My Tickets",
+            "rating1": "Very Poor",
+            "rating2": "Poor",
+            "rating3": "Average",
+            "rating4": "Good",
+            "rating5": "Excellent",
+            "commentLabel": "Additional Comment (Optional)",
+            "commentPlaceholder": "Write your comments here...",
+            "submit": "Submit Rating",
+            "submitting": "Submitting...",
+            "unauthorized": "You are not authorized to view this survey",
+            "alreadyCompletedTitle": "Survey Already Completed",
+            "alreadyCompletedDesc": "You have already submitted your feedback for this ticket.",
+            "backToTicket": "Back to Ticket"
+        },
+        "password": "Password",
+        "passwordOptional": "Password (Optional)",
+        "passwordPlaceholder": "Leave blank to keep current"
     },
     "Login": {
         "title": "Welcome Back",
@@ -312,10 +480,99 @@
         "password": "Password",
         "forgotPassword": "Forgot your password?",
         "submit": "Sign In",
-        "back": "Back to Home"
+        "back": "Back to Home",
+        "invalidCredentials": "Invalid email or password. Please try again.",
+        "error": "Something went wrong. Please try again.",
+        "Otp": {
+            "emailNotAuthorized": "This email is not authorized.",
+            "codeSent": "Code sent. Check your email.",
+            "enterCode": "Enter the 6-digit code",
+            "sendCode": "Send Code",
+            "verify": "Verify and Sign In",
+            "codePlaceholder": "123456",
+            "emailPlaceholder": "client@company.com",
+            "step1Title": "Client Access",
+            "step2Title": "Verify Code"
+        }
     },
     "ImageViewer": {
         "close": "Close",
         "download": "Download image"
+    },
+    "TwoFactor": {
+        "title": "Two-Factor Authentication",
+        "subtitle": "Protect your account with two-factor verification",
+        "enable": "Enable Two-Factor Authentication",
+        "disable": "Disable 2FA",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "status": "Status",
+        "backupCodesRemaining": "Backup codes remaining",
+        "setupTitle": "Setup 2FA",
+        "benefits": "2FA Benefits",
+        "benefitsList": {
+            "protection": "Protection against unauthorized access",
+            "secure": "Security even if your password is compromised",
+            "compatible": "Compatible with Google Authenticator, Microsoft Authenticator, Authy",
+            "backup": "Backup codes for emergencies"
+        },
+        "scan": {
+            "title": "Scan QR Code",
+            "subtitle": "Use your authenticator app to scan this code",
+            "cantScan": "Can't scan? Enter this code manually:",
+            "apps": "Recommended apps:",
+            "continue": "Continue"
+        },
+        "verify": {
+            "title": "Verify Code",
+            "subtitle": "Enter the 6-digit code from your app",
+            "placeholder": "123456",
+            "back": "Back",
+            "submit": "Verify and Enable",
+            "submitting": "Verifying..."
+        },
+        "backup": {
+            "title": "2FA Successfully Enabled",
+            "subtitle": "Save these backup codes in a safe place",
+            "warning": "These codes will only be shown once",
+            "description": "Each code can be used once to log in if you lose access to your authenticator.",
+            "download": "Download",
+            "finish": "Finish"
+        },
+        "active": {
+            "title": "Active Protection",
+            "description": "Your account is protected with two-factor authentication.",
+            "disableTitle": "Disable 2FA",
+            "disableDesc": "If you want to deactivate two-factor authentication, enter your password:",
+            "passwordPlaceholder": "Password",
+            "disableButton": "Disable",
+            "disabling": "Disabling..."
+        },
+        "login": {
+            "title": "Two-Factor Verification",
+            "subtitle": "Enter the code from your authenticator app",
+            "subtitleBackup": "Enter a backup code",
+            "placeholder": "123456",
+            "placeholderBackup": "XXXX-XXXX",
+            "useBackup": "Lost your device? Use a backup code",
+            "useAuthenticator": "Use authenticator code",
+            "verify": "Verify",
+            "verifying": "Verifying...",
+            "cancel": "Cancel"
+        },
+        "errors": {
+            "alreadyEnabled": "Two-factor authentication is already enabled",
+            "invalidCode": "Invalid code. Check the code in your authenticator app.",
+            "passwordIncorrect": "Incorrect password",
+            "notEnabled": "2FA is not enabled",
+            "initFailed": "Failed to initialize 2FA. Please try again.",
+            "enableFailed": "Failed to enable 2FA. Please try again.",
+            "disableFailed": "Failed to disable 2FA. Please try again.",
+            "unauthorized": "Unauthorized"
+        },
+        "success": {
+            "enabled": "2FA successfully enabled",
+            "disabled": "2FA disabled successfully"
+        }
     }
 }

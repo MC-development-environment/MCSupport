@@ -14,19 +14,25 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save } from "lucide-react";
 
-// Schema definition matching the server one
+// Definición de esquema coincidente con el del servidor
 const settingsSchema = z.object({
     companyName: z.string().min(1),
     supportEmail: z.string().email(),
     maintenanceMode: z.boolean(),
-    // Use z.number() but handle string input via coerce or pre-process if needed
-    // simpler for form to just use coerse
+    // Usar z.number() pero manejar entrada de cadena vía coerce o pre-procesamiento si es necesario
+    // más simple para el formulario usar coerce
     maxUploadSizeMB: z.coerce.number().min(1).max(50),
     allowedFileTypes: z.string().min(1),
     assistantName: z.string().min(1),
     assistantEnabled: z.boolean(),
     businessHoursStart: z.coerce.number().min(0).max(23),
     businessHoursEnd: z.coerce.number().min(0).max(23),
+    // Configuración de SLA
+    slaLow: z.coerce.number().min(1),
+    slaMedium: z.coerce.number().min(1),
+    slaHigh: z.coerce.number().min(1),
+    slaCritical: z.coerce.number().min(1),
+    workDays: z.array(z.string()), // ej. ["1", "2"]
 });
 
 type SettingsFormData = z.infer<typeof settingsSchema>;
@@ -185,6 +191,75 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                                     min={0}
                                     max={23}
                                     {...form.register("businessHoursEnd")}
+                                    disabled={isPending}
+                                />
+                            </div>
+                            <div className="md:col-span-2 space-y-2">
+                                <Label>{t("workDays")}</Label>
+                                <div className="flex gap-4 flex-wrap">
+                                    {[1, 2, 3, 4, 5, 6, 0].map((day) => (
+                                        <div key={day} className="flex items-center space-x-2">
+                                            <Switch
+                                                checked={form.watch("workDays")?.includes(String(day))}
+                                                onCheckedChange={(checked) => {
+                                                    const current = form.watch("workDays") || [];
+                                                    if (checked) {
+                                                        form.setValue("workDays", [...current, String(day)]);
+                                                    } else {
+                                                        form.setValue(
+                                                            "workDays",
+                                                            current.filter((d) => d !== String(day))
+                                                        );
+                                                    }
+                                                }}
+                                                disabled={isPending}
+                                            />
+                                            <Label className="font-normal">
+                                                {new Date(2024, 0, day === 0 ? 7 : day).toLocaleDateString("es-ES", { weekday: "long" })}
+                                            </Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2 pt-4 border-t">
+                            <h3 className="md:col-span-2 text-lg font-medium">{t("slaTitle")}</h3>
+                            <p className="md:col-span-2 text-sm text-muted-foreground -mt-2 mb-2">{t("slaDesc")}</p>
+                            
+                            <div className="space-y-2">
+                                <Label htmlFor="slaLow">{t("slaLow")}</Label>
+                                <Input
+                                    id="slaLow"
+                                    type="number"
+                                    {...form.register("slaLow")}
+                                    disabled={isPending}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="slaMedium">{t("slaMedium")}</Label>
+                                <Input
+                                    id="slaMedium"
+                                    type="number"
+                                    {...form.register("slaMedium")}
+                                    disabled={isPending}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="slaHigh">{t("slaHigh")}</Label>
+                                <Input
+                                    id="slaHigh"
+                                    type="number"
+                                    {...form.register("slaHigh")}
+                                    disabled={isPending}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="slaCritical">{t("slaCritical")}</Label>
+                                <Input
+                                    id="slaCritical"
+                                    type="number"
+                                    {...form.register("slaCritical")}
                                     disabled={isPending}
                                 />
                             </div>

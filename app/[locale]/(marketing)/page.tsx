@@ -26,16 +26,18 @@ export default async function IndexPage() {
           {session ? (
             <div className="text-center space-y-4">
               <p className="text-sm">{t('loggedInAs')} {session.user?.email}</p>
-              <div className="grid grid-cols-2 gap-4">
-                <Link href="/admin" className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 flex items-center justify-center">
-                  {tNav('admin')}
-                </Link>
-                <Link href="/portal" className="rounded-md bg-secondary px-4 py-2 text-secondary-foreground hover:bg-secondary/80 flex items-center justify-center">
+              <div className={`grid gap-4 ${session.user?.role !== 'CLIENT' && session.user?.role !== 'VIRTUAL_ASSISTANT' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {session.user?.role !== 'CLIENT' && session.user?.role !== 'VIRTUAL_ASSISTANT' && (
+                  <Link href="/admin" className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 flex items-center justify-center">
+                    {tNav('admin')}
+                  </Link>
+                )}
+                <Link href="/portal" className={`rounded-md px-4 py-2 flex items-center justify-center ${session.user?.role === 'CLIENT' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
                   {tNav('portal')}
                 </Link>
               </div>
               <form action={logout}>
-                <button type="submit" className="text-sm text-destructive hover:underline mt-2">
+                <button type="submit" className="text-sm text-destructive mt-2">
                   {tNav('logout') || "Cerrar Sesión"}
                 </button>
               </form>

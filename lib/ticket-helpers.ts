@@ -1,29 +1,29 @@
-import { prisma } from './prisma';
+import { prisma } from "./prisma";
 
 /**
- * Helper function to get email recipients for a ticket
- * Returns primary recipient (to) and CC recipients
+ * Función auxiliar para obtener destinatarios de correo para un ticket
+ * Retorna destinatario principal (to) y destinatarios CC
  */
 export async function getTicketRecipients(ticketId: string): Promise<{
-    to: string | null;
-    cc: string[];
+  to: string | null;
+  cc: string[];
 }> {
-    const ticket = await prisma.case.findUnique({
-        where: { id: ticketId },
-        select: {
-            user: {
-                select: { email: true }
-            },
-            ccEmails: true
-        }
-    });
+  const ticket = await prisma.case.findUnique({
+    where: { id: ticketId },
+    select: {
+      user: {
+        select: { email: true },
+      },
+      ccEmails: true,
+    },
+  });
 
-    if (!ticket) {
-        return { to: null, cc: [] };
-    }
+  if (!ticket) {
+    return { to: null, cc: [] };
+  }
 
-    return {
-        to: ticket.user.email,
-        cc: ticket.ccEmails || []
-    };
+  return {
+    to: ticket.user.email,
+    cc: ticket.ccEmails || [],
+  };
 }

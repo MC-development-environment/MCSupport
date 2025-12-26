@@ -1,0 +1,14 @@
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<e02a3c14-f096-51a7-ad2c-4508e3d51174@gmail.com>","subject":"Ticket Recibido: CN-1765746011","timestamp":"2025-12-14T21:00:12.635Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[LAU] Detected language: es for ticket CN-1765746011","timestamp":"2025-12-14T21:00:13.710Z"}
+{"level":"info","message":"[LAU] Updated ticket CN-1765746011: priority=null, sentiment=NEUTRAL, category=HOW_TO","timestamp":"2025-12-14T21:00:13.747Z"}
+{"level":"warn","message":"[LAU] Department not found: Soporte Técnico","timestamp":"2025-12-14T21:00:13.773Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<18ac809b-e2cf-a4a1-c1a7-cd2909802307@gmail.com>","subject":"LAU ha respondido tu ticket #CN-1765746011","timestamp":"2025-12-14T21:00:15.295Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[LAU Metrics] Response time: 2654ms for ticket cmj67l1xc000110dvvwqvbogf","timestamp":"2025-12-14T21:00:15.298Z"}
+{"level":"info","message":"[LAU] Processed ticket CN-1765746011 in 2654ms (Language: es)","timestamp":"2025-12-14T21:00:15.299Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<57b3153c-3cf3-7a53-8c02-cb11d77dabfb@gmail.com>","subject":"Ticket Recibido: CN-1765748657","timestamp":"2025-12-14T21:44:19.263Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[LAU] Detected language: es for ticket CN-1765748657","timestamp":"2025-12-14T21:44:21.133Z"}
+{"level":"info","message":"[LAU] Updated ticket CN-1765748657: priority=null, sentiment=NEUTRAL, category=FEATURE_REQUEST","timestamp":"2025-12-14T21:44:21.243Z"}
+{"level":"info","message":"[LAU] Auto-assigned ticket cmj695s2w0001iab28gxgufym to Fleirin Cipion (Lider de equipo) (Desarrollo)","timestamp":"2025-12-14T21:44:21.684Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<1b85f8d8-29e2-581e-e34c-41c649b8664b@gmail.com>","subject":"LAU ha respondido tu ticket #CN-1765748657","timestamp":"2025-12-14T21:44:23.222Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[LAU Metrics] Response time: 3946ms for ticket cmj695s2w0001iab28gxgufym","timestamp":"2025-12-14T21:44:23.225Z"}
+{"level":"info","message":"[LAU] Processed ticket CN-1765748657 in 3946ms (Language: es)","timestamp":"2025-12-14T21:44:23.227Z"}

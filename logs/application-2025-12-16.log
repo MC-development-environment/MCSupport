@@ -1,0 +1,24 @@
+{"ccCount":1,"level":"info","message":"Email sent successfully","messageId":"<a400131b-6d3b-c564-e649-c14eaecb7bd4@gmail.com>","subject":"Ticket Recibido: CN-1765888506","timestamp":"2025-12-16T12:35:08.125Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[LAU] Detected language: es for ticket CN-1765888506","timestamp":"2025-12-16T12:35:08.999Z"}
+{"level":"info","message":"[LAU] Updated ticket CN-1765888506: priority=null, sentiment=NEUTRAL, category=OTHER","timestamp":"2025-12-16T12:35:09.026Z"}
+{"level":"info","message":"[LAU] Skill keywords extracted: prueba, auditoría, test, este, para","timestamp":"2025-12-16T12:35:09.066Z"}
+{"level":"info","message":"[LAU] Smart assignment: Selected Alberto Mora (Líder Técnico) (TECHNICAL_LEAD) skill_score=0, workload=1 tickets","timestamp":"2025-12-16T12:35:09.100Z"}
+{"level":"info","message":"[LAU] Other candidates: Joaquin Perez (Soporte Técnico)(score=0,load=0)","timestamp":"2025-12-16T12:35:09.102Z"}
+{"level":"info","message":"[LAU] KB search terms after filtering","terms":["prueba","auditoría","prueba","verificar","auditoría","formateados","funciona"],"timestamp":"2025-12-16T12:35:09.166Z"}
+{"articlesFound":3,"level":"info","message":"[LAU] KB articles filtered out due to low relevance","scores":[{"score":14,"terms":4,"title":"Factura Electrónica en República Dominicana"},{"score":4,"terms":1,"title":"Inicio de Sesión y Acceso al Sistema"},{"score":4,"terms":1,"title":"Autenticación de Dos Pasos (2FA)"}],"timestamp":"2025-12-16T12:35:09.203Z"}
+{"level":"info","message":"[LAU] KB search terms after filtering","terms":["prueba","auditoría","prueba","verificar","auditoría","formateados","funciona"],"timestamp":"2025-12-16T12:35:09.206Z"}
+{"articlesFound":3,"level":"info","message":"[LAU] KB articles filtered out due to low relevance","scores":[{"score":14,"terms":4,"title":"Factura Electrónica en República Dominicana"},{"score":4,"terms":1,"title":"Inicio de Sesión y Acceso al Sistema"},{"score":4,"terms":1,"title":"Autenticación de Dos Pasos (2FA)"}],"timestamp":"2025-12-16T12:35:09.227Z"}
+{"ccCount":1,"level":"info","message":"Email sent successfully","messageId":"<c910edb8-40b7-3a88-2b8f-7dd77fcbbe49@gmail.com>","subject":"LAU ha respondido tu ticket #CN-1765888506","timestamp":"2025-12-16T12:35:10.508Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[LAU Metrics] Response time: 2381ms for ticket cmj8kf810000bgyi7krw84pd2","timestamp":"2025-12-16T12:35:10.517Z"}
+{"level":"info","message":"[LAU] Processed ticket CN-1765888506 in 2381ms (Language: es)","timestamp":"2025-12-16T12:35:10.520Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<3e49b97f-a8df-bb59-56d4-978345bf2bc7@gmail.com>","subject":"Cliente respondió - Ticket #NS-IMP-002","timestamp":"2025-12-16T16:49:24.178Z","to":"support@multicomputos.com"}
+{"level":"info","message":"[Ticket] Auto-reopened ticket NS-IMP-002 by client response","timestamp":"2025-12-16T16:49:24.181Z"}
+{"ccCount":1,"level":"info","message":"Email sent successfully","messageId":"<103fe781-9ad1-7e01-e621-7e0f652dead6@gmail.com>","subject":"Nuevo mensaje en tu ticket #CN-1765888506","timestamp":"2025-12-16T17:24:52.749Z","to":"heri.espinosa@multicomputos.com"}
+{"level":"info","message":"[Ticket] Sent new message notification to heri.espinosa@multicomputos.com (CC: test.cc@example.net) for ticket CN-1765888506","timestamp":"2025-12-16T17:24:52.755Z"}
+{"level":"info","message":"[Ticket] Auto-set to IN_PROGRESS ticket CN-123 by collaborator response","timestamp":"2025-12-16T17:35:29.024Z"}
+{"level":"info","message":"[Ticket] Sent new message notification to client@example.com (CC: ) for ticket CN-123","timestamp":"2025-12-16T17:35:29.044Z"}
+{"level":"info","message":"[Ticket] Sent new message notification to client@example.com (CC: ) for ticket CN-123","timestamp":"2025-12-16T17:35:29.050Z"}
+{"level":"info","message":"[Ticket] Auto-set to IN_PROGRESS ticket CN-123 by collaborator response","timestamp":"2025-12-16T17:36:07.024Z"}
+{"level":"info","message":"[Ticket] Sent new message notification to client@example.com (CC: ) for ticket CN-123","timestamp":"2025-12-16T17:36:07.037Z"}
+{"level":"info","message":"[Ticket] Sent new message notification to client@example.com (CC: ) for ticket CN-123","timestamp":"2025-12-16T17:36:07.042Z"}
+{"ccCount":1,"level":"info","message":"Email sent successfully","messageId":"<2352a407-2c0e-46bd-b6a4-cc0b8932986c@gmail.com>","subject":"Actualización de Ticket #CN-1765888506","timestamp":"2025-12-16T18:18:12.152Z","to":"heri.espinosa@multicomputos.com"}

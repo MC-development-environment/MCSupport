@@ -1,0 +1,44 @@
+name: Ticket Auto-Followup Cron
+
+on:
+  schedule:
+    # Ejecutar cada hora a los 0 minutos
+    - cron: "0 * * * *"
+  workflow_dispatch: # Permite ejecución manual desde GitHub UI
+
+jobs:
+  trigger-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Auto-Followup API
+        env:
+          # URL de tu aplicación en producción (Railway)
+          # Ej: https://mc-support-production.up.railway.app
+          APP_URL: ${{ secrets.APP_URL }}
+
+          # El secreto que definiste en tus variables de entorno
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "Error: APP_URL secret is not set"
+            exit 1
+          fi
+
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Error: CRON_SECRET secret is not set"
+            exit 1
+          fi
+
+          echo "Triggering auto-followup at $APP_URL/api/cron/followup..."
+
+          response=$(curl -s -w "%{http_code}" -X GET "$APP_URL/api/cron/followup?secret=$CRON_SECRET")
+          http_code=${response: -3}
+          content=${response:0:${#response}-3}
+
+          echo "Response code: $http_code"
+          echo "Response content: $content"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "Failed to trigger cron job"
+            exit 1
+          fi

@@ -46,8 +46,8 @@ export function RegisterForm() {
                 toast.error(result.error);
             } else {
                 toast.success(result.success);
-                // Redirect or clear form? 
-                // Usually redirect to login.
+                // ¿Redireccionar o limpiar formulario? 
+                // Usualmente redireccionar a login.
                 window.location.href = "/login";
             }
         })

@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/select"
 import { useTranslations } from "next-intl"
 import { updateTicketStatus } from "@/actions/ticket-actions"
-import { toast } from "sonner" // We don't have sonner installed yet, maybe basic alert or just state?
-// Let's stick to basic state or install sonner later. For now console log.
+import { toast } from "sonner" // Aún no tenemos sonner instalado, ¿quizás alerta básica o solo estado?
+// Vamos a quedarnos con estado básico o instalar sonner después. Por ahora registro en consola.
 
 interface Props {
     ticketId: string
@@ -22,14 +22,13 @@ export function TicketStatusUpdater({ ticketId, currentStatus }: Props) {
     const [status, setStatus] = React.useState(currentStatus)
     const [isPending, startTransition] = React.useTransition()
     const t = useTranslations('Enums.Status')
-    const tCommon = useTranslations('Admin') // For "status" label if needed, or just hardcode "Estado" if consistent with other places
 
     const handleStatusChange = (value: string) => {
         setStatus(value)
         startTransition(async () => {
             const result = await updateTicketStatus(ticketId, value)
             if (!result.success) {
-                // Revert on failure
+                // Revertir en caso de fallo
                 setStatus(currentStatus)
                 toast.error("Error al actualizar estado")
             } else {
@@ -41,7 +40,7 @@ export function TicketStatusUpdater({ ticketId, currentStatus }: Props) {
     return (
         <Select value={status} onValueChange={handleStatusChange} disabled={isPending}>
             <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder={tCommon('status')} />
+                <SelectValue>{t(status as 'OPEN' | 'IN_PROGRESS' | 'WAITING_CUSTOMER' | 'RESOLVED' | 'CLOSED')}</SelectValue>
             </SelectTrigger>
             <SelectContent>
                 <SelectItem value="OPEN">{t('OPEN')}</SelectItem>

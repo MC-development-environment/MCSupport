@@ -9,19 +9,23 @@ import { PlusCircle, ChevronLeft } from "lucide-react"
 import { format } from "date-fns"
 import { getTranslations } from "next-intl/server";
 import { StatusBadge } from "@/components/status-badge";
+import { PriorityBadge } from "@/components/priority-badge";
 
 interface Ticket {
     id: string;
     ticketNumber: string;
     title: string;
     status: string;
+    priority: string;
     updatedAt: Date;
+    createdAt: Date;
 }
 
 export default async function PortalTicketsPage() {
     const session = await auth();
     const t = await getTranslations('Portal');
     const tCommon = await getTranslations('Common');
+    const tAdmin = await getTranslations('Admin');
 
     // Middleware should handle protection, but good to check.
     if (!session?.user?.id) {
@@ -33,7 +37,7 @@ export default async function PortalTicketsPage() {
             userId: session.user.id
         },
         orderBy: {
-            updatedAt: 'desc'
+            createdAt: 'desc'
         }
     })
 
@@ -76,7 +80,8 @@ export default async function PortalTicketsPage() {
                                     <TableHead>{t('ticketDetails')}</TableHead>
                                     <TableHead>{t('subject')}</TableHead>
                                     <TableHead>{t('priority')}</TableHead>
-                                    <TableHead className="hidden md:table-cell">{t('recentTickets')}</TableHead>
+                                    <TableHead>{tAdmin('status')}</TableHead>
+                                    <TableHead className="hidden md:table-cell">{t('TicketDetail.created')}</TableHead>
                                     <TableHead className="text-right">{t('actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -93,10 +98,13 @@ export default async function PortalTicketsPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
+                                            <PriorityBadge priority={ticket.priority} />
+                                        </TableCell>
+                                        <TableCell>
                                             <StatusBadge status={ticket.status} />
                                         </TableCell>
                                         <TableCell className="hidden md:table-cell">
-                                            {format(ticket.updatedAt, 'yyyy-MM-dd')}
+                                            {format(ticket.createdAt, 'yyyy-MM-dd')}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild size="sm" variant="ghost">

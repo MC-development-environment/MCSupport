@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useRef, useCallback } from "react"
+import { useTranslations } from "next-intl"
 
 interface PaginationControlsProps {
     currentPage: number
@@ -20,33 +21,34 @@ export function PaginationControls({
     totalCount,
     limit = 10
 }: PaginationControlsProps) {
+    const t = useTranslations('Admin.Pagination');
     const router = useRouter()
     const searchParams = useSearchParams()
     const [isNavigating, setIsNavigating] = useState(false)
     const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const handlePageChange = useCallback((page: number) => {
-        // Prevent navigation if already navigating or invalid page
+        // Evitar navegación si ya está navegando o página inválida
         if (isNavigating || page < 1 || page > totalPages || page === currentPage) {
             return
         }
 
-        // Set navigating state
+        // Establecer estado de navegación
         setIsNavigating(true)
 
-        // Clear any existing timeout
+        // Limpiar cualquier tiempo de espera existente
         if (navigationTimeoutRef.current) {
             clearTimeout(navigationTimeoutRef.current)
         }
 
-        // Build new URL
+        // Construir nueva URL
         const params = new URLSearchParams(searchParams.toString())
         params.set('page', page.toString())
 
-        // Navigate
+        // Navegar
         router.push(`${baseUrl}?${params.toString()}`)
 
-        // Reset navigation state after a delay (safety mechanism)
+        // Restablecer estado de navegación después de un retraso (mecanismo de seguridad)
         navigationTimeoutRef.current = setTimeout(() => {
             setIsNavigating(false)
         }, 1000)
@@ -62,14 +64,14 @@ export function PaginationControls({
             <div className="text-sm text-muted-foreground">
                 {totalCount ? (
                     <div className="flex items-center gap-1.5">
-                        <span className="text-foreground">Mostrando</span>
+                        <span className="text-foreground">{t('showing')}</span>
                         <span className="font-semibold text-foreground px-1.5 py-0.5 bg-muted rounded">{startRecord}-{endRecord}</span>
-                        <span>de</span>
+                        <span>{t('of')}</span>
                         <span className="font-semibold text-foreground">{totalCount}</span>
-                        <span>registros</span>
+                        <span>{t('records')}</span>
                     </div>
                 ) : (
-                    <span>Página {currentPage} de {totalPages}</span>
+                    <span>{t('page')} {currentPage} {t('of')} {totalPages}</span>
                 )}
             </div>
             <div className="flex items-center space-x-2">
@@ -84,7 +86,7 @@ export function PaginationControls({
                     ) : (
                         <ChevronLeft className="h-4 w-4 mr-1" />
                     )}
-                    Anterior
+                    {t('previous')}
                 </Button>
                 <Button
                     variant="outline"
@@ -92,7 +94,7 @@ export function PaginationControls({
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages || isNavigating}
                 >
-                    Siguiente
+                    {t('next')}
                     {isNavigating ? (
                         <Loader2 className="h-4 w-4 ml-1 animate-spin" />
                     ) : (

@@ -1,7 +1,6 @@
 "use client"
 
-import * as React from "react"
-import { Languages } from "lucide-react"
+import { Languages, Check } from "lucide-react"
 import { usePathname, useRouter } from "@/i18n/routing"
 import { useLocale } from "next-intl"
 
@@ -31,13 +30,28 @@ export function LanguageToggle() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onSelectChange("en")} disabled={locale === 'en'}>
-                    English
+                <DropdownMenuItem 
+                    onClick={() => onSelectChange("en")} 
+                    disabled={locale === 'en'}
+                    className="flex items-center justify-between gap-3"
+                >
+                    <span>English</span>
+                    {locale === 'en' && (
+                        <Check className="h-4 w-4 text-primary" />
+                    )}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSelectChange("es")} disabled={locale === 'es'}>
-                    Español
+                <DropdownMenuItem 
+                    onClick={() => onSelectChange("es")} 
+                    disabled={locale === 'es'}
+                    className="flex items-center justify-between gap-3"
+                >
+                    <span>Español</span>
+                    {locale === 'es' && (
+                        <Check className="h-4 w-4 text-primary" />
+                    )}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     )
 }
+

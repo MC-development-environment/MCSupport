@@ -11,7 +11,9 @@
     "Common": {
         "loading": "Cargando...",
         "error": "Algo salió mal",
-        "success": "Operación exitosa"
+        "success": "Operación exitosa",
+        "article": "artículo",
+        "articles": "artículos"
     },
     "Navigation": {
         "admin": "Administración",
@@ -39,18 +41,38 @@
             "POSITIVE": "Positivo",
             "NEUTRAL": "Neutral",
             "NEGATIVE": "Negativo"
+        },
+        "Role": {
+            "MANAGER": "Gerente",
+            "SERVICE_OFFICER": "Oficial de Servicio",
+            "TEAM_LEAD": "Líder de Equipo",
+            "TECHNICAL_LEAD": "Líder Técnico",
+            "TECHNICIAN": "Técnico",
+            "CONSULTANT": "Consultor",
+            "DEVELOPER": "Desarrollador",
+            "VIRTUAL_ASSISTANT": "Asistente Virtual",
+            "CLIENT": "Cliente",
+            "USER": "Usuario"
         }
     },
     "Admin": {
         "dashboard": "Panel de Control",
         "tickets": "Tickets",
         "kb": "Base de Conocimiento",
+        "backToKb": "Volver a Base de Conocimiento",
         "settings": "Configuración",
+        "security": "Seguridad",
         "password": "Contraseña",
+        "email": "Correo electrónico",
+        "name": "Nombre",
+        "role": "Rol",
         "save": "Guardar",
+        "success": "Perfil actualizado correctamente",
         "settingsTitle": "Configuración del Sistema",
-        "comingSoon": "Funcionalidad próximamente disponible.",
-        "success": "Perfil actualizado correctamente.",
+        "settingsDesc": "Gestiona opciones generales y perfil.",
+        "profileInfo": "Información de Perfil",
+        "profileDesc": "Actualiza tu información personal y contraseña.",
+        "systemConfig": "Configuración General",
         "totalTickets": "Tickets Totales",
         "openCases": "Casos Abiertos",
         "noRecentTickets": "No hay tickets recientes.",
@@ -67,9 +89,23 @@
         "ticketTitle": "Título",
         "customer": "Cliente",
         "priority": "Prioridad",
+        "category": "Categoría",
         "status": "Estado",
         "users": "Usuarios",
         "reports": "Reportes",
+        "searchPlaceholder": "Buscar ticket...",
+        "selected": "seleccionado(s)",
+        "bulkSuccess": "{count} tickets actualizados correctamente",
+        "bulkError": "Error al actualizar tickets",
+        "UserDialog": {
+            "selectRole": "Seleccionar rol",
+            "selectDepartment": "Seleccionar departamento",
+            "created": "Usuario creado exitosamente",
+            "updated": "Usuario actualizado exitosamente"
+        },
+        "GlobalSearch": {
+            "placeholder": "Escriba para buscar..."
+        },
         "Status": {
             "title": "Estado del Sistema",
             "database": "Base de Datos",
@@ -90,9 +126,15 @@
             "daily": "Reporte Diario",
             "weekly": "Reporte Semanal",
             "monthly": "Reporte Mensual",
+            "quarterly": "Reporte Trimestral",
+            "semester": "Reporte Semestral",
             "yearly": "Reporte Anual",
             "download": "Descargar CSV",
-            "downloadDesc": "Descargar historial.",
+            "downloadDesc": "Descargar historial de tickets.",
+            "selectPeriod": "Seleccionar Periodo",
+            "filterByEmployee": "Filtrar por empleado",
+            "allEmployees": "Todos los empleados",
+            "selectEmployee": "Seleccionar empleado...",
             "Analytics": {
                 "totalTickets": "Tickets Totales",
                 "period": "En el periodo seleccionado",
@@ -115,13 +157,36 @@
                     "7d": "7 Días",
                     "30d": "30 Días",
                     "90d": "Trimestre",
+                    "180d": "Semestre",
+                    "365d": "Anual",
                     "all": "Todo"
-                }
-            }
+                },
+                "slaCompliance": "% Cumplimiento SLA",
+                "customerSat": "Satisfacción Cliente",
+                "ratings": "Calificaciones",
+                "target": "Meta",
+                "overdue": "Tickets Vencidos",
+                "requiresAction": "Requieren acción inmediata"
+            },
+            "sendReport": "Enviar Reporte",
+            "sendReportTitle": "Enviar Reporte",
+            "sendReportDesc": "Envía tu reporte de actividad a tu supervisor",
+            "recipient": "Destinatario",
+            "selectRecipient": "Seleccionar destinatario",
+            "selectRecipientError": "Selecciona un destinatario",
+            "noRecipients": "No hay destinatarios disponibles para tu rol",
+            "period": "Período",
+            "additionalMessage": "Mensaje adicional",
+            "messagePlaceholder": "Añade comentarios o notas...",
+            "cancel": "Cancelar",
+            "send": "Enviar",
+            "loading": "Cargando...",
+            "from": "De",
+            "department": "Departamento"
         },
         "Users": {
             "title": "Gestión de Usuarios",
-            "description": "Administrar cuentas de personal y clientes.",
+            "description": "Administración de acceso y roles del sistema.",
             "create": "Nuevo Usuario",
             "edit": "Editar Usuario",
             "delete": "Eliminar",
@@ -136,7 +201,33 @@
             "actions": "Acciones",
             "save": "Guardar",
             "saving": "Guardando...",
-            "cancel": "Cancelar"
+            "cancel": "Cancelar",
+            "usersCount": "Usuarios ({count})",
+            "tableTitle": "Usuarios",
+            "searchPlaceholder": "Buscar usuarios...",
+            "usersList": "Lista completa de usuarios registrados.",
+            "UserDialog": {
+                "selectRole": "Seleccionar rol",
+                "selectDepartment": "Seleccionar departamento",
+                "editDescription": "Actualizar detalles del usuario.",
+                "createDescription": "Añadir nuevo personal o cliente.",
+                "passwordOptional": "Contraseña (Opcional)",
+                "passwordLabel": "Contraseña",
+                "none": "-- Ninguno --",
+                "skills": "Etiquetas de Experticia",
+                "skillsPlaceholder": "netsuite, scripting, api, facturacion",
+                "skillsHint": "Separadas por comas - usadas para asignación inteligente de tickets",
+                "created": "Usuario creado exitosamente",
+                "updated": "Usuario actualizado exitosamente"
+            }
+        },
+        "Pagination": {
+            "showing": "Mostrando",
+            "of": "de",
+            "records": "registros",
+            "page": "Página",
+            "previous": "Anterior",
+            "next": "Siguiente"
         },
         "Attachments": {
             "title": "Adjuntos",
@@ -152,21 +243,17 @@
         "noTickets": "No se encontraron tickets.",
         "kbDescription": "Gestionar artículos y categorías.",
         "addArticle": "Agregar Artículo",
-        "category": "Categoría",
+        "kbCategory": "Categoría",
         "author": "Autor",
         "lastUpdated": "Última Actualización",
         "actions": "Acciones",
         "published": "Publicado",
         "draft": "Borrador",
         "edit": "Editar",
+        "view": "Ver",
+        "updatedBy": "Actualizado por",
+        "createdBy": "Creado por",
         "noArticles": "No se encontraron artículos. Empiece por crear uno.",
-        "profileInfo": "Información del Perfil",
-        "profileDesc": "Actualiza los detalles de tu cuenta.",
-        "name": "Nombre",
-        "email": "Correo Electrónico",
-        "role": "Rol",
-        "systemConfig": "Configuración del Sistema",
-        "systemConfigDesc": "Configuración global de la aplicación (Nombre, correos, límites).",
         "Settings": {
             "title": "Configuración Global",
             "companyName": "Nombre de la Empresa",
@@ -184,7 +271,14 @@
             "save": "Guardar Cambios",
             "saving": "Guardando...",
             "success": "Configuración actualizada correctamente.",
-            "error": "Error al actualizar la configuración."
+            "error": "Error al actualizar la configuración.",
+            "slaTitle": "Tiempos de Compromiso (SLA)",
+            "slaDesc": "Configura el tiempo máximo de respuesta en horas.",
+            "slaLow": "Prioridad Baja (Horas)",
+            "slaMedium": "Prioridad Media (Horas)",
+            "slaHigh": "Prioridad Alta (Horas)",
+            "slaCritical": "Prioridad Crítica (Horas)",
+            "workDays": "Días Laborales"
         },
         "tablePlaceholder": "No hay transacciones recientes.",
         "sidebarTitle": "Multicomputos",
@@ -192,6 +286,39 @@
         "viewAll": "Ver Todo",
         "fromLastMonth": "desde el mes pasado",
         "sinceLastHour": "desde la última hora",
+        "KBCategories": {
+            "Knowledge Base": "Base de Conocimiento",
+            "General": "General",
+            "Billing": "Facturación",
+            "Technical": "Técnico",
+            "NetSuite": "NetSuite",
+            "Artificial Intelligence": "Inteligencia Artificial",
+            "Software Development": "Desarrollo de Software",
+            "Human Resources": "Recursos Humanos",
+            "Marketing": "Publicidad",
+            "Database": "Base de Datos",
+            "Information Technology": "Tecnología de la Información",
+            "Accounting": "Contabilidad",
+            "Business Management": "Gestión Empresarial",
+            "Security": "Seguridad",
+            "MCSupport": "Todo sobre MCSupport"
+        },
+        "KBCategoryDescriptions": {
+            "General": "Preguntas generales",
+            "Billing": "Facturas, pagos y facturación electrónica",
+            "Technical": "Soporte técnico",
+            "NetSuite": "Artículos relacionados con NetSuite ERP",
+            "Artificial Intelligence": "IA y aprendizaje automático",
+            "Software Development": "Programación y desarrollo",
+            "Human Resources": "Gestión de recursos humanos",
+            "Marketing": "Publicidad y marketing",
+            "Database": "Gestión de bases de datos y SQL",
+            "Information Technology": "Infraestructura y sistemas de TI",
+            "Accounting": "Contabilidad y finanzas",
+            "Business Management": "Operaciones y gestión empresarial",
+            "Security": "Ciberseguridad y protección de datos",
+            "MCSupport": "Todo sobre el sistema MCSupport"
+        },
         "Article": {
             "title": "Título",
             "titlePlaceholder": "¿Cómo restablecer la contraseña?",
@@ -223,7 +350,15 @@
             "unassigned": "Sin asignar",
             "priority": "Prioridad",
             "status": "Estado",
-            "sentiment": "Sentimiento"
+            "sentiment": "Sentimiento",
+            "category": "Categoría",
+            "reopen": "Reabrir Caso",
+            "reopenDesc": "Seleccione departamento y usuario para reasignar",
+            "selectDepartment": "Seleccionar departamento",
+            "selectUser": "Seleccionar usuario",
+            "reopenConfirm": "Reabrir",
+            "reopenSuccess": "Caso reabierto exitosamente",
+            "closedReadOnly": "Este caso está cerrado."
         }
     },
     "Error": {
@@ -295,6 +430,7 @@
         },
         "kbSubtitle": "Encuentre respuestas a preguntas comunes y aprenda a usar MCSupport.",
         "lastUpdatedLabel": "Última actualización:",
+        "backToKb": "Volver a la Base de Conocimiento",
         "searchArticles": "Buscar artículos...",
         "noArticlesFound": "No se encontraron artículos que coincidan con",
         "actions": "Acciones",
@@ -303,8 +439,39 @@
             "upload": "Adjuntar Archivos",
             "limitReached": "Límite alcanzado",
             "sizeError": "El archivo excede 10MB",
-            "totalSizeError": "El total de archivos no puede exceder 20MB"
-        }
+            "totalSizeError": "El total de archivos no puede exceder 30MB",
+            "info": {
+                "maxImages": "Máx. 10 imágenes",
+                "maxPerFile": "10MB/archivo",
+                "maxTotal": "30MB total"
+            }
+        },
+        "Survey": {
+            "title": "Encuesta de Satisfacción",
+            "description": "Tu opinión es importante para nosotros. Por favor califica la atención recibida en este ticket.",
+            "ratingRequired": "Por favor selecciona una calificación",
+            "successMessage": "Gracias por tu feedback",
+            "errorMessage": "Error al enviar la encuesta",
+            "thankYou": "¡Gracias por tu opinión!",
+            "feedbackReceived": "Hemos recibido tus comentarios correctamente.",
+            "backToTickets": "Volver a mis tickets",
+            "rating1": "Muy Malo",
+            "rating2": "Malo",
+            "rating3": "Regular",
+            "rating4": "Bueno",
+            "rating5": "Excelente",
+            "commentLabel": "Comentario adicional (Opcional)",
+            "commentPlaceholder": "Escribe aquí tus comentarios...",
+            "submit": "Enviar Calificación",
+            "submitting": "Enviando...",
+            "unauthorized": "No tienes permiso para ver esta encuesta",
+            "alreadyCompletedTitle": "Encuesta ya completada",
+            "alreadyCompletedDesc": "Ya has enviado tu opinión para este ticket anteriormente.",
+            "backToTicket": "Volver al Ticket"
+        },
+        "password": "Contraseña",
+        "passwordOptional": "Contraseña (Opcional)",
+        "passwordPlaceholder": "Dejar en blanco para mantener actual"
     },
     "Login": {
         "title": "Bienvenido",
@@ -332,6 +499,82 @@
     "ImageViewer": {
         "close": "Cerrar",
         "download": "Descargar imagen"
+    },
+    "TwoFactor": {
+        "title": "Autenticación de 2 Pasos",
+        "subtitle": "Protege tu cuenta con verificación de dos factores",
+        "enable": "Habilitar Autenticación de 2 Pasos",
+        "disable": "Deshabilitar 2FA",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado",
+        "status": "Estado",
+        "backupCodesRemaining": "Códigos de respaldo restantes",
+        "setupTitle": "Configurar 2FA",
+        "benefits": "Beneficios de 2FA",
+        "benefitsList": {
+            "protection": "Protección contra accesos no autorizados",
+            "secure": "Seguridad incluso si tu contraseña es comprometida",
+            "compatible": "Compatible con Google Authenticator, Microsoft Authenticator, Authy",
+            "backup": "Códigos de respaldo para emergencias"
+        },
+        "scan": {
+            "title": "Escanea el Código QR",
+            "subtitle": "Usa tu aplicación autenticadora para escanear este código",
+            "cantScan": "¿No puedes escanear? Ingresa este código manualmente:",
+            "apps": "Aplicaciones recomendadas:",
+            "continue": "Continuar"
+        },
+        "verify": {
+            "title": "Verificar Código",
+            "subtitle": "Ingresa el código de 6 dígitos de tu aplicación",
+            "placeholder": "123456",
+            "back": "Volver",
+            "submit": "Verificar y Habilitar",
+            "submitting": "Verificando..."
+        },
+        "backup": {
+            "title": "2FA Habilitado Exitosamente",
+            "subtitle": "Guarda estos códigos de respaldo en un lugar seguro",
+            "warning": "Estos códigos solo se mostrarán una vez",
+            "description": "Cada código puede usarse una sola vez para iniciar sesión si pierdes acceso a tu autenticador.",
+            "download": "Descargar",
+            "finish": "Finalizar"
+        },
+        "active": {
+            "title": "Protección Activa",
+            "description": "Tu cuenta está protegida con autenticación de dos pasos.",
+            "disableTitle": "Deshabilitar 2FA",
+            "disableDesc": "Si deseas desactivar la autenticación de dos pasos, ingresa tu contraseña:",
+            "passwordPlaceholder": "Contraseña",
+            "disableButton": "Deshabilitar",
+            "disabling": "Deshabilitando..."
+        },
+        "login": {
+            "title": "Verificación de 2 Pasos",
+            "subtitle": "Ingresa el código de tu aplicación autenticadora",
+            "subtitleBackup": "Ingresa un código de respaldo",
+            "placeholder": "123456",
+            "placeholderBackup": "XXXX-XXXX",
+            "useBackup": "¿Perdiste tu dispositivo? Usa un código de respaldo",
+            "useAuthenticator": "Usar código de autenticador",
+            "verify": "Verificar",
+            "verifying": "Verificando...",
+            "cancel": "Cancelar"
+        },
+        "errors": {
+            "alreadyEnabled": "La autenticación de 2 pasos ya está habilitada",
+            "invalidCode": "Código inválido. Verifica el código en tu aplicación autenticadora.",
+            "passwordIncorrect": "Contraseña incorrecta",
+            "notEnabled": "2FA no está habilitado",
+            "initFailed": "Error al inicializar 2FA. Intenta nuevamente.",
+            "enableFailed": "Error al habilitar 2FA. Intenta nuevamente.",
+            "disableFailed": "Error al deshabilitar 2FA. Intenta nuevamente.",
+            "unauthorized": "No autorizado"
+        },
+        "success": {
+            "enabled": "2FA habilitado exitosamente",
+            "disabled": "2FA deshabilitado correctamente"
+        }
     },
     "Register": {
         "title": "Crear Cuenta",

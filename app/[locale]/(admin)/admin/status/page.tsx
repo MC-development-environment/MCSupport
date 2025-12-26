@@ -9,6 +9,8 @@ export default async function StatusPage() {
     let dbStatus = "Unknown"
     let latency = 0
 
+    // These are server-side calls in a Server Component, not React hooks
+    /* eslint-disable react-hooks/purity */
     const start = Date.now()
     try {
         await prisma.$queryRaw`SELECT 1`
@@ -23,6 +25,7 @@ export default async function StatusPage() {
     const memoryUsage = process.memoryUsage();
     const memoryMB = Math.round(memoryUsage.rss / 1024 / 1024);
     const uptime = process.uptime();
+    /* eslint-enable react-hooks/purity */
     const uptimeHours = Math.floor(uptime / 3600);
     const uptimeMinutes = Math.floor((uptime % 3600) / 60);
 

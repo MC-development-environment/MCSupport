@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useTransition } from "react"
 import { updateProfile } from "@/actions/user-actions"
@@ -8,6 +9,8 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 interface Props {
     user: {
@@ -19,7 +22,11 @@ interface Props {
 
 export function ProfileForm({ user }: Props) {
     const [isPending, startTransition] = useTransition();
+    const { update } = useSession();
+    const router = useRouter();
     const t = useTranslations('Admin');
+    const tPortal = useTranslations('Portal');
+    const tRole = useTranslations('Enums.Role');
     const [name, setName] = useState(user.name || "");
     const [password, setPassword] = useState("");
 
@@ -30,6 +37,10 @@ export function ProfileForm({ user }: Props) {
             if (res.error) {
                 toast.error(res.error);
             } else {
+                // Actualizar token de sesión con nuevo nombre
+                await update({ name });
+                // Forzar re-renderizado de componentes de servidor
+                router.refresh();
                 toast.success(t('success'));
                 setPassword("");
             }
@@ -52,21 +63,21 @@ export function ProfileForm({ user }: Props) {
                 />
             </div>
             <div className="grid gap-2">
-                <Label htmlFor="password">{t('password')} (Opcional)</Label>
+                <Label htmlFor="password">{tPortal('passwordOptional')}</Label>
                 <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isPending}
-                    placeholder="Dejar en blanco para mantener actual"
+                    placeholder={tPortal('passwordPlaceholder')}
                     suppressHydrationWarning
                 />
             </div>
             <div className="grid gap-2">
                 <Label>{t('role')}</Label>
                 <div className="p-2 border rounded-md bg-muted text-sm text-muted-foreground">
-                    {user.role}
+                    {user.role ? tRole(user.role as any) : ''}
                 </div>
             </div>
             <Button type="submit" disabled={isPending}>

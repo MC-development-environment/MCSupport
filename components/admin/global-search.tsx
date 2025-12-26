@@ -38,7 +38,7 @@ export function GlobalSearch() {
     }>({ tickets: [], users: [], articles: [] })
 
     const router = useRouter();
-    // const t = useTranslations('Admin'); // Can use later
+    const t = useTranslations('Admin');
 
     React.useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -76,14 +76,14 @@ export function GlobalSearch() {
                 onClick={() => setOpen(true)}
             >
                 <Search className="mr-2 h-4 w-4" />
-                <span className="hidden lg:inline-flex">Buscar...</span>
-                <span className="inline-flex lg:hidden">Buscar...</span>
+                <span className="hidden lg:inline-flex">{t('GlobalSearch.placeholder')}</span>
+                <span className="inline-flex lg:hidden">{t('GlobalSearch.placeholder')}</span>
                 <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
                     <span className="text-xs">⌘</span>K
                 </kbd>
             </Button>
             <CommandDialog open={open} onOpenChange={setOpen}>
-                <CommandInput placeholder="Escriba para buscar..." value={query} onValueChange={setQuery} />
+                <CommandInput placeholder={t('GlobalSearch.placeholder')} value={query} onValueChange={setQuery} />
                 <CommandList>
                     <CommandEmpty>No se encontraron resultados.</CommandEmpty>
 

@@ -28,6 +28,7 @@ interface Article {
     content: string;
     categoryId: string;
     isPublished: boolean;
+    isInternal: boolean;
 }
 
 interface ArticleFormProps {
@@ -37,14 +38,24 @@ interface ArticleFormProps {
 
 export function ArticleForm({ categories, article }: ArticleFormProps) {
     const t = useTranslations('Admin.Article');
+    const tKB = useTranslations('Admin.KBCategories');
     const [isPending, startTransition] = useTransition();
+
+    // Auxiliar para traducir nombre de categoría
+    const getCategoryLabel = (name: string) => {
+        try {
+            return tKB(name as never);
+        } catch {
+            return name;
+        }
+    };
 
     async function clientAction(formData: FormData) {
         startTransition(async () => {
             try {
                 if (article) {
                     await updateArticle(article.id, formData);
-                    toast.success(t('save') + " " + t('published')) // 'Save Published' - slightly awkward but uses existing keys. Or just generic success.
+                    toast.success(t('save') + " " + t('published')) // 'Guardar Publicado' - un poco extraño pero usa claves existentes. O solo éxito genérico.
                 } else {
                     await createArticle(formData);
                     toast.success(t('create'))
@@ -71,7 +82,7 @@ export function ArticleForm({ categories, article }: ArticleFormProps) {
                     </SelectTrigger>
                     <SelectContent>
                         {categories.map(cat => (
-                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                            <SelectItem key={cat.id} value={cat.id}>{getCategoryLabel(cat.name)}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
@@ -85,6 +96,11 @@ export function ArticleForm({ categories, article }: ArticleFormProps) {
             <div className="flex items-center space-x-2">
                 <Checkbox id="isPublished" name="isPublished" defaultChecked={article?.isPublished} />
                 <Label htmlFor="isPublished">{t('publish')}</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+                <Checkbox id="isInternal" name="isInternal" defaultChecked={article?.isInternal} />
+                <Label htmlFor="isInternal">{t('internalOnly')}</Label>
             </div>
 
             <div className="flex items-center gap-4">

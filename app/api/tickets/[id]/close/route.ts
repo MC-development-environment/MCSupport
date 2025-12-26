@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
-import { AssistantService } from '@/lib/assistant-service';
+import { AssistantService } from '@/lib/lau';
 import { sendEmail } from '@/lib/email-service';
 import { logActivity, AuditAction, AuditEntity } from '@/lib/audit-service';
 

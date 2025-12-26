@@ -2,12 +2,13 @@ import { getTranslations } from "next-intl/server";
 import { getSystemConfig } from "@/actions/settings-actions";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { ProfileForm } from "@/components/admin/profile-form";
+import { TwoFactorSetup } from "@/components/settings/two-factor-setup";
 import { auth } from "@/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SettingsPage() {
-    const t = await getTranslations("Admin.Settings");
+
     const tAdmin = await getTranslations("Admin");
     const session = await auth();
     const config = await getSystemConfig();
@@ -24,17 +25,26 @@ export default async function SettingsPage() {
         assistantEnabled: config.assistantEnabled,
         businessHoursStart: config.businessHoursStart,
         businessHoursEnd: config.businessHoursEnd,
+        slaLow: config.slaLow,
+        slaMedium: config.slaMedium,
+        slaHigh: config.slaHigh,
+        slaCritical: config.slaCritical,
+        workDays: config.workDays,
     };
 
     const isManager = session.user.role === "MANAGER";
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">{tAdmin("settingsTitle")}</h2>
+        <div className="flex flex-1 flex-col gap-4 md:gap-8">
+            <div>
+                <h1 className="text-2xl font-semibold">{tAdmin("settingsTitle")}</h1>
+                <p className="text-muted-foreground">{tAdmin("settingsDesc") || tAdmin("profileDesc")}</p>
+            </div>
 
             <Tabs defaultValue="profile" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="profile">{tAdmin("profileInfo")}</TabsTrigger>
+                    <TabsTrigger value="security">{tAdmin("security")}</TabsTrigger>
                     {isManager && <TabsTrigger value="system">{tAdmin("systemConfig")}</TabsTrigger>}
                 </TabsList>
 
@@ -50,6 +60,12 @@ export default async function SettingsPage() {
                             <ProfileForm user={session.user} />
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="security">
+                    <div className="space-y-6">
+                        <TwoFactorSetup />
+                    </div>
                 </TabsContent>
 
                 {isManager && (

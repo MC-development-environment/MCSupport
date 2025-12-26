@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, Monitor, Check } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function ModeToggle() {
-    const { setTheme } = useTheme()
+    const { theme, setTheme } = useTheme()
 
     return (
         <DropdownMenu>
@@ -25,14 +25,44 @@ export function ModeToggle() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme("light")}>
-                    Light
+                <DropdownMenuItem 
+                    onClick={() => setTheme("light")}
+                    disabled={theme === 'light'}
+                    className="flex items-center justify-between gap-3"
+                >
+                    <div className="flex items-center gap-2">
+                        <Sun className="h-4 w-4" />
+                        <span>Light</span>
+                    </div>
+                    {theme === 'light' && (
+                        <Check className="h-4 w-4 text-primary" />
+                    )}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    Dark
+                <DropdownMenuItem 
+                    onClick={() => setTheme("dark")}
+                    disabled={theme === 'dark'}
+                    className="flex items-center justify-between gap-3"
+                >
+                    <div className="flex items-center gap-2">
+                        <Moon className="h-4 w-4" />
+                        <span>Dark</span>
+                    </div>
+                    {theme === 'dark' && (
+                        <Check className="h-4 w-4 text-primary" />
+                    )}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
-                    System
+                <DropdownMenuItem 
+                    onClick={() => setTheme("system")}
+                    disabled={theme === 'system'}
+                    className="flex items-center justify-between gap-3"
+                >
+                    <div className="flex items-center gap-2">
+                        <Monitor className="h-4 w-4" />
+                        <span>System</span>
+                    </div>
+                    {theme === 'system' && (
+                        <Check className="h-4 w-4 text-primary" />
+                    )}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

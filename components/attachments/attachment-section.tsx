@@ -21,7 +21,13 @@ interface Attachment {
     }
 }
 
-export function AttachmentSection({ ticketId, attachments }: { ticketId: string, attachments: Attachment[] }) {
+interface AttachmentSectionProps {
+    ticketId: string
+    attachments: Attachment[]
+    disabled?: boolean
+}
+
+export function AttachmentSection({ ticketId, attachments, disabled = false }: AttachmentSectionProps) {
     const t = useTranslations("Admin.Attachments");
     const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
 
@@ -38,9 +44,11 @@ export function AttachmentSection({ ticketId, attachments }: { ticketId: string,
             <Card>
                 <CardHeader className="flex flex-row flex-wrap items-center gap-4 pb-2">
                     <CardTitle className="text-sm font-medium">{t('title')}</CardTitle>
-                    <div className="flex-1">
-                        <UploadButton ticketId={ticketId} currentCount={attachments.length} />
-                    </div>
+                    {!disabled && (
+                        <div className="flex-1">
+                            <UploadButton ticketId={ticketId} currentCount={attachments.length} />
+                        </div>
+                    )}
                 </CardHeader>
                 <CardContent>
                     {attachments.length === 0 ? (

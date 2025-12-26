@@ -1,24 +1,12 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
-import { format } from "date-fns"
 import { getTranslations } from 'next-intl/server';
-import { StatusBadge } from "@/components/status-badge"
-import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { TicketFilters } from "@/components/admin/ticket-filters"
-import { SortableHeader } from "@/components/sortable-header"
-
-import { PaginationControls } from "@/components/pagination-controls"
-import { PriorityBadge } from "@/components/priority-badge"
+import { TicketsWrapper } from "@/components/admin/tickets-wrapper"
+import { TableLoadingOverlay } from "@/components/table-loading-overlay"
+import { TicketsDataTable } from "@/components/admin/data-table/tickets-data-table"
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';
@@ -31,6 +19,8 @@ export default async function TicketsPage({
         page?: string;
         sort?: string;
         order?: string;
+        department?: string;
+        assignee?: string;
     }>;
 }) {
     const t = await getTranslations('Admin');
@@ -40,12 +30,28 @@ export default async function TicketsPage({
     const page = Number(params?.page) || 1;
     const sort = params?.sort || 'createdAt';
     const order = params?.order || 'desc';
+    const assigneeFilter = params?.assignee || '';
+    const departmentFilter = params?.department || '';
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Fetch departments with their users for filter
+    const departments = await prisma.department.findMany({
+        include: {
+            users: {
+                where: {
+                    role: { in: ['MANAGER', 'SERVICE_OFFICER', 'TEAM_LEAD', 'TECHNICAL_LEAD', 'TECHNICIAN', 'CONSULTANT', 'DEVELOPER'] }
+                },
+                select: { id: true, name: true, email: true },
+                orderBy: { name: 'asc' }
+            }
+        },
+        orderBy: { name: 'asc' }
+    });
+
     let whereClause: any = {};
 
+    // Filtro de búsqueda
     if (query) {
         whereClause.OR = [
             { title: { contains: query, mode: 'insensitive' } },
@@ -54,26 +60,98 @@ export default async function TicketsPage({
         ];
     }
 
-    // Role restriction
-    if (session?.user?.role !== 'MANAGER') {
-        const userFilter = {
-            OR: [
-                { userId: session?.user?.id },
-                { assignedToId: session?.user?.id }
-            ]
-        };
-
-        if (whereClause.OR) {
-            whereClause = {
-                AND: [
-                    whereClause,
-                    userFilter
-                ]
-            };
+    // Filtro de asignado
+    if (assigneeFilter) {
+        if (assigneeFilter === 'unassigned') {
+            whereClause.assignedToId = null;
         } else {
-            whereClause = userFilter;
+            whereClause.assignedToId = assigneeFilter;
         }
     }
+
+    // Filtro de departamento (por usuarios del departamento)
+    if (departmentFilter) {
+        const deptUsers = departments.find(d => d.id === departmentFilter)?.users || [];
+        const userIds = deptUsers.map(u => u.id);
+        if (userIds.length > 0) {
+            whereClause.assignedToId = { in: userIds };
+        } else {
+            // Department has no users - return no results
+            whereClause.assignedToId = 'no-match-impossible-id';
+        }
+    }
+
+    // Role restriction
+    if (session?.user?.role !== 'MANAGER') {
+        // Fetch current user details to get departmentId
+        const currentUser = await prisma.user.findUnique({
+            where: { id: session?.user?.id },
+            select: { id: true, role: true, departmentId: true }
+        });
+
+        if (currentUser?.role === 'TEAM_LEAD' && currentUser.departmentId) {
+            // TEAM_LEAD: See all tickets assigned to users in their department
+            // Should they also see tickets they CREATED? Probably safest to keep that 
+            // OR logic if business allows, but strict requirement says "ver tickets de su departamento".
+            // Let's assume they might personally handle tickets too.
+            const leadFilter = {
+                OR: [
+                    { userId: currentUser.id },
+                    { assignedTo: { departmentId: currentUser.departmentId } }
+                ]
+            };
+
+            if (whereClause.OR) {
+                whereClause = { AND: [whereClause, leadFilter] };
+            } else {
+                whereClause = { ...whereClause, ...leadFilter };
+            }
+
+        } else if (currentUser?.role === 'TECHNICAL_LEAD' && currentUser.departmentId) {
+             // TECHNICAL_LEAD: See their own tickets + tickets assigned to TECHNICIANS in their department
+             const techLeadFilter = {
+                 OR: [
+                     { userId: currentUser.id }, // Created by me
+                     { assignedToId: currentUser.id }, // Assigned to me
+                     { 
+                         assignedTo: { 
+                             departmentId: currentUser.departmentId,
+                             role: 'TECHNICIAN'
+                         } 
+                     }
+                 ]
+             };
+
+             if (whereClause.OR) {
+                whereClause = { AND: [whereClause, techLeadFilter] };
+             } else {
+                whereClause = { ...whereClause, ...techLeadFilter };
+             }
+
+        } else {
+            // Default (Technician, etc): Only own tickets (created or assigned)
+            const userFilter = {
+                OR: [
+                    { userId: session?.user?.id },
+                    { assignedToId: session?.user?.id }
+                ]
+            };
+
+            if (whereClause.OR) {
+                whereClause = {
+                    AND: [
+                        whereClause,
+                        userFilter
+                    ]
+                };
+            } else {
+                whereClause = { ...whereClause, ...userFilter };
+            }
+        }
+    }
+
+    // Flatten users list for the bulk assign dropdown
+    const allAssignableUsers = departments.flatMap(d => d.users);
 
     // Build orderBy based on sort field
     let orderBy: any = { createdAt: 'desc' };
@@ -81,6 +159,8 @@ export default async function TicketsPage({
     else if (sort === 'title') orderBy = { title: order };
     else if (sort === 'priority') orderBy = { priority: order };
     else if (sort === 'status') orderBy = { status: order };
+    else if (sort === 'category') orderBy = { category: order };
+    else if (sort === 'assignedTo') orderBy = { assignedTo: { name: order } };
     else orderBy = { createdAt: order };
 
     const [tickets, totalCount] = await Promise.all([
@@ -100,106 +180,34 @@ export default async function TicketsPage({
     const totalPages = Math.ceil(totalCount / limit);
 
     return (
+        <TicketsWrapper>
         <Card x-chunk="dashboard-05-chunk-3">
             <CardHeader className="px-7">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <CardTitle>{t('tickets')}</CardTitle>
                         <CardDescription>
                             {t('ticketsDescription')}
                         </CardDescription>
                     </div>
-                    <TicketFilters />
+                    <TicketFilters departments={departments} />
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[100px] whitespace-nowrap">
-                                    <SortableHeader column="ticketNumber" label={t('ticketNo')} currentSort={sort} currentOrder={order} />
-                                </TableHead>
-                                <TableHead className="max-w-[300px]">
-                                    <SortableHeader column="title" label={t('ticketTitle')} currentSort={sort} currentOrder={order} />
-                                </TableHead>
-                                <TableHead className="max-w-[200px]">{t('customer')}</TableHead>
-                                <TableHead className="hidden sm:table-cell whitespace-nowrap">
-                                    <SortableHeader column="priority" label={t('priority')} currentSort={sort} currentOrder={order} />
-                                </TableHead>
-                                <TableHead className="whitespace-nowrap">{t('TicketDetail.assignee')}</TableHead>
-                                <TableHead className="hidden sm:table-cell whitespace-nowrap">
-                                    <SortableHeader column="status" label={t('status')} currentSort={sort} currentOrder={order} />
-                                </TableHead>
-                                <TableHead className="hidden md:table-cell whitespace-nowrap text-right">
-                                    <SortableHeader column="createdAt" label={t('date')} currentSort={sort} currentOrder={order} />
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            {tickets.map((ticket: any) => (
-                                <TableRow key={ticket.id}>
-                                    <TableCell className="font-medium whitespace-nowrap">
-                                        <a href={`/admin/tickets/${ticket.id}`} className="hover:underline">
-                                            #{ticket.ticketNumber || String(ticket.id).substring(0, 8).toUpperCase()}
-                                        </a>
-                                    </TableCell>
-                                    <TableCell className="max-w-[300px]">
-                                        <div className="font-medium truncate" title={ticket.title}>
-                                            <a href={`/admin/tickets/${ticket.id}`} className="hover:underline">
-                                                {ticket.title}
-                                            </a>
-                                        </div>
-                                        <div className="text-xs text-muted-foreground md:hidden mt-1">
-                                            <StatusBadge status={ticket.status} />
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="max-w-[200px]">
-                                        <div className="space-y-1">
-                                            <div className="font-medium truncate" title={ticket.user.name || 'Unknown'}>
-                                                {ticket.user.name || 'Unknown'}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground truncate" title={ticket.user.email}>
-                                                {ticket.user.email}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                        <PriorityBadge priority={ticket.priority} />
-                                    </TableCell>
-                                    <TableCell className="whitespace-nowrap">
-                                        <div className="text-sm">
-                                            {ticket.assignedTo?.name || <span className="text-muted-foreground italic text-xs">{t('TicketDetail.unassigned')}</span>}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                        <StatusBadge status={ticket.status} />
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell text-right whitespace-nowrap text-muted-foreground">
-                                        {format(ticket.createdAt, 'yyyy-MM-dd')}
-                                        <span className="block text-xs">{format(ticket.createdAt, 'HH:mm')}</span>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {tickets.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-center h-24">
-                                        {t('noTickets')}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-                <PaginationControls
-                    currentPage={page}
-                    totalPages={totalPages}
-                    baseUrl="/admin/tickets"
-                    totalCount={totalCount}
-                    limit={limit}
-                />
+                <TableLoadingOverlay>
+                    <TicketsDataTable 
+                        tickets={tickets as any}
+                        totalCount={totalCount}
+                        totalPages={totalPages}
+                        currentPage={page}
+                        limit={limit}
+                        sort={sort}
+                        order={order}
+                        users={allAssignableUsers}
+                    />
+                </TableLoadingOverlay>
             </CardContent>
         </Card>
+        </TicketsWrapper>
     )
 }

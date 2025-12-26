@@ -4,6 +4,7 @@ import { useLocale } from "next-intl"
 import { Prisma } from "@prisma/client"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { formatAuditDetails } from "@/lib/audit-formatter"
 
 interface AuditLogEntry {
     id: string
@@ -43,14 +44,13 @@ export function AuditLogTimeline({ logs, emptyText }: Props) {
                                 <p className="text-sm font-medium">{log.actor.name || log.actor.email}</p>
                                 <span className="text-xs text-muted-foreground">{format(log.createdAt, "PPP p", { locale: dateLocale })}</span>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                <span className="font-semibold text-primary">{log.action}</span>
-                                {log.details && (
-                                    <span className="ml-2 font-mono text-xs text-foreground/80">
-                                        {JSON.stringify(log.details)}
+                                <p className="text-sm text-muted-foreground hidden-text">
+                                    <span className="font-semibold text-primary mr-2">{log.action}</span>
+                                    <span className="text-xs text-foreground/80">
+                                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                        {formatAuditDetails(log.action, log.details as any, locale)}
                                     </span>
-                                )}
-                            </p>
+                                </p>
                         </div>
                     </div>
                 ))}

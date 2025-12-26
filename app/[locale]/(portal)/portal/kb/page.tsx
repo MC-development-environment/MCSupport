@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
 import { KbSearch } from "@/components/portal/kb-search"
 import { Button } from "@/components/ui/button"
 import { Link } from '@/i18n/routing';
@@ -8,10 +9,17 @@ import { getTranslations } from 'next-intl/server';
 
 export default async function KnowledgeBaseHome() {
     const t = await getTranslations('Portal');
+    const session = await auth();
+    const isInternalUser = session?.user?.role && session.user.role !== 'CLIENT';
+
     const categories = await prisma.category.findMany({
         include: {
             articles: {
-                where: { isPublished: true },
+                where: { 
+                    isPublished: true,
+                    // If not internal user, only show public articles
+                    ...(isInternalUser ? {} : { isInternal: false })
+                },
                 orderBy: { updatedAt: 'desc' }
             }
         }

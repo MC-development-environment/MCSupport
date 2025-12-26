@@ -1,12 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
-import { ChevronLeft, Home } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import { Button } from '@/components/ui/button';
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/status-badge"
 import { PriorityBadge } from "@/components/priority-badge"
 import { TicketConversation } from "@/components/portal/ticket-conversation";
@@ -15,6 +14,9 @@ import { getMessages } from "@/actions/ticket-actions";
 import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 import { es, enUS } from "date-fns/locale"
+import { SlaTimer } from "@/components/admin/sla-timer"
+import { ClientReopenTicketDialog } from "@/components/portal/client-reopen-dialog"
+import { Lock } from "lucide-react"
 
 interface Props {
     params: Promise<{
@@ -44,6 +46,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function PortalTicketDetailPage({ params }: Props) {
     const t = await getTranslations('Portal.TicketDetail');
+    const tAdmin = await getTranslations('Admin.TicketDetail');
     const session = await auth();
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/portal/tickets')
@@ -55,6 +58,7 @@ export default async function PortalTicketDetailPage({ params }: Props) {
     const ticket = await prisma.case.findUnique({
         where: { id: ticketId },
         include: {
+            user: { select: { name: true, email: true } },
             attachments: {
                 orderBy: { createdAt: 'desc' },
                 include: {
@@ -141,8 +145,16 @@ export default async function PortalTicketDetailPage({ params }: Props) {
 
                     <TicketConversation
                         ticketId={ticket.id}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         initialMessages={messages as any}
                         userEmail={session.user.email}
+                        disabled={ticket.status === 'CLOSED' || ticket.status === 'RESOLVED'}
+                        ticketDescription={ticket.description || ""}
+                        ticketCreatedAt={ticket.createdAt}
+                        ticketUser={{
+                            name: ticket.user.name,
+                            email: ticket.user.email
+                        }}
                     />
                 </div>
 
@@ -152,6 +164,27 @@ export default async function PortalTicketDetailPage({ params }: Props) {
                             <CardTitle className="text-sm font-medium">{t('details')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            {/* Closed ticket notice */}
+                            {(ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') && (
+                                <>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Lock className="h-4 w-4" />
+                                        <span className="text-sm">{tAdmin('closedReadOnly')}</span>
+                                    </div>
+                                    <Separator />
+                                </>
+                            )}
+
+                            {/* SLA Timer */}
+                            <SlaTimer 
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore - Prisma types regeneration pending
+                                slaTargetAt={ticket.slaTargetAt} 
+                                createdAt={ticket.createdAt} 
+                                status={ticket.status} 
+                                locale={locale} 
+                            />
+                            
                             <div>
                                 <span className="text-muted-foreground text-xs font-medium">{t('priority')}</span>
                                 <div className="mt-1">
@@ -159,6 +192,20 @@ export default async function PortalTicketDetailPage({ params }: Props) {
                                 </div>
                             </div>
                             <Separator />
+                            
+                            {/* Status logic */}
+                            <div>
+                                <span className="text-muted-foreground text-xs font-medium">{tAdmin('status')}</span>
+                                <div className="mt-1">
+                                    {(ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') ? (
+                                        <ClientReopenTicketDialog ticketId={ticket.id} locale={locale} />
+                                    ) : (
+                                        <StatusBadge status={ticket.status} />
+                                    )}
+                                </div>
+                            </div>
+                            <Separator />
+
                             <div>
                                 <span className="text-muted-foreground text-xs font-medium">{t('created')}</span>
                                 <div className="mt-1 text-sm">
@@ -172,10 +219,36 @@ export default async function PortalTicketDetailPage({ params }: Props) {
                                     {format(ticket.updatedAt, "PPP p", { locale: dateLocale })}
                                 </div>
                             </div>
+                            {/* CC Emails Section */}
+                            {ticket.ccEmails && ticket.ccEmails.length > 0 && (
+                                <>
+                                    <Separator />
+                                    <div>
+                                        <span className="text-muted-foreground text-xs font-medium">
+                                            {locale === 'es' ? 'Correos en copia' : 'CC Recipients'}
+                                        </span>
+                                        <div className="mt-2 space-y-1">
+                                            {ticket.ccEmails.map((email, index) => (
+                                                <div 
+                                                    key={index} 
+                                                    className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded truncate"
+                                                    title={email}
+                                                >
+                                                    {email}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
-                    <AttachmentSection ticketId={ticket.id} attachments={ticket.attachments} />
+                    <AttachmentSection 
+                        ticketId={ticket.id} 
+                        attachments={ticket.attachments} 
+                        disabled={ticket.status === 'CLOSED' || ticket.status === 'RESOLVED'}
+                    />
                 </div>
             </div>
         </div>

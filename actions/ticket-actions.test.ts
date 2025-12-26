@@ -51,6 +51,7 @@ describe('ticket-actions', () => {
                 id: 'ticket-123',
                 ticketNumber: 'CN-123',
                 title: 'Test Issue',
+                description: 'I need help with my problem', // English description for language detection
                 status: 'OPEN',
                 user: { email: 'client@example.com' },
             };
@@ -71,7 +72,7 @@ describe('ticket-actions', () => {
             expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
                 to: 'client@example.com',
                 cc: ['cc1@example.com'],
-                subject: expect.stringContaining('Ticket Update'),
+                subject: expect.stringContaining('CN-123'), // Just check ticket number is in subject
             }));
         });
     });

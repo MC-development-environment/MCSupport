@@ -29,7 +29,7 @@ export function UploadButton({ ticketId, currentCount = 0, className }: { ticket
             } else {
                 toast.success(t('success'));
             }
-            // Reset input
+            // Reiniciar entrada
             e.target.value = "";
         });
     }

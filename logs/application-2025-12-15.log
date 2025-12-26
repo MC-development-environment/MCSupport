@@ -1,0 +1,26 @@
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<ca2abf17-b82c-6b99-6618-af1b109cfbec@gmail.com>","subject":"Actualización de Ticket #LEG-001","timestamp":"2025-12-15T04:46:12.301Z","to":"admin@multicomputos.com"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<6e4d8ef1-adba-8ffd-b14e-a0a72a640120@gmail.com>","subject":"Ticket Recibido: CN-1765809821","timestamp":"2025-12-15T14:43:43.857Z","to":"eric.collado@multicomputos.com"}
+{"level":"error","message":"[LAU] Assistant user not found","timestamp":"2025-12-15T14:43:43.902Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<db1e3a1d-99ca-15dd-0f55-944595c1bff3@gmail.com>","subject":"Ticket Recibido: CN-1765814851","timestamp":"2025-12-15T16:07:33.433Z","to":"eric.collado@multicomputos.com"}
+{"level":"info","message":"[LAU] Detected language: es for ticket CN-1765814851","timestamp":"2025-12-15T16:07:34.786Z"}
+{"error":{"clientVersion":"5.22.0","name":"PrismaClientValidationError"},"level":"error","message":"[LAU] Failed to process ticket CN-1765814851","timestamp":"2025-12-15T16:07:34.792Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<e2523754-b551-d8cc-c221-bec268379b36@gmail.com>","subject":"Ticket Recibido: CN-1765815156","timestamp":"2025-12-15T16:12:41.684Z","to":"eric.collado@multicomputos.com"}
+{"level":"info","message":"[LAU] Detected language: es for ticket CN-1765815156","timestamp":"2025-12-15T16:12:42.892Z"}
+{"level":"info","message":"[LAU] Updated ticket CN-1765815156: priority=LOW, sentiment=NEUTRAL, category=SUPPORT","timestamp":"2025-12-15T16:12:42.929Z"}
+{"level":"info","message":"[LAU] Found TECHNICIAN: Joaquin Perez (Soporte Técnico) for Support (0 active tickets)","timestamp":"2025-12-15T16:12:42.985Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<12710b29-dc12-bc96-f819-b42e3dc3e08f@gmail.com>","subject":"LAU ha respondido tu ticket #CN-1765815156","timestamp":"2025-12-15T16:12:44.428Z","to":"eric.collado@multicomputos.com"}
+{"level":"info","message":"[LAU Metrics] Response time: 2739ms for ticket cmj7cr2kt000714l9kqyr5z8b","timestamp":"2025-12-15T16:12:44.430Z"}
+{"level":"info","message":"[LAU] Processed ticket CN-1765815156 in 2739ms (Language: es)","timestamp":"2025-12-15T16:12:44.431Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<2433bf48-3d9b-0550-cfdb-37fa2c803988@gmail.com>","subject":"Ticket Recibido: CN-1765835759","timestamp":"2025-12-15T21:56:00.826Z","to":"eric.collado@multicomputos.com"}
+{"level":"info","message":"[LAU] Detected language: es for ticket CN-1765835759","timestamp":"2025-12-15T21:56:01.671Z"}
+{"level":"info","message":"[LAU] Updated ticket CN-1765835759: priority=LOW, sentiment=NEUTRAL, category=SUPPORT","timestamp":"2025-12-15T21:56:01.694Z"}
+{"level":"info","message":"[LAU] Skill keywords extracted: intermitente, guardar, formularios, dinámicos, múltiples","timestamp":"2025-12-15T21:56:01.720Z"}
+{"level":"info","message":"[LAU] Smart assignment: Selected Alberto Mora (Líder Técnico) (TECHNICAL_LEAD) skill_score=0, workload=0 tickets","timestamp":"2025-12-15T21:56:01.768Z"}
+{"level":"info","message":"[LAU] Other candidates: Joaquin Perez (Soporte Técnico)(score=0,load=0)","timestamp":"2025-12-15T21:56:01.772Z"}
+{"level":"info","message":"[LAU] KB search terms after filtering","terms":["intermitente","formularios","dinámicos","múltiples","tipos","preguntas","editar","formularios"],"timestamp":"2025-12-15T21:56:01.832Z"}
+{"articlesFound":2,"level":"info","message":"[LAU] KB articles filtered out due to low relevance","scores":[{"score":6,"terms":2,"title":"Factura Electrónica en República Dominicana"},{"score":6,"terms":2,"title":"Configuración del Sistema"}],"timestamp":"2025-12-15T21:56:01.924Z"}
+{"level":"info","message":"[LAU] KB search terms after filtering","terms":["intermitente","formularios","dinámicos","múltiples","tipos","preguntas","editar","formularios"],"timestamp":"2025-12-15T21:56:01.927Z"}
+{"articlesFound":2,"level":"info","message":"[LAU] KB articles filtered out due to low relevance","scores":[{"score":6,"terms":2,"title":"Factura Electrónica en República Dominicana"},{"score":6,"terms":2,"title":"Configuración del Sistema"}],"timestamp":"2025-12-15T21:56:01.936Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<8964beba-b703-34bc-3aaa-41a8499f9942@gmail.com>","subject":"LAU ha respondido tu ticket #CN-1765835759","timestamp":"2025-12-15T21:56:03.237Z","to":"eric.collado@multicomputos.com"}
+{"level":"info","message":"[LAU Metrics] Response time: 2405ms for ticket cmj7p0o370001gyi7zgoad0r1","timestamp":"2025-12-15T21:56:03.238Z"}
+{"level":"info","message":"[LAU] Processed ticket CN-1765835759 in 2405ms (Language: es)","timestamp":"2025-12-15T21:56:03.238Z"}

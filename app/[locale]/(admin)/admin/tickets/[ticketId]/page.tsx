@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTranslations } from 'next-intl/server';
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
 import { es, enUS } from "date-fns/locale"
-import { ChevronLeft, User, AlertCircle, Flag, Users, History, LayoutDashboard } from "lucide-react"
+import { ChevronLeft, User, AlertCircle, Users, History, LayoutDashboard, Lock } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { TicketStatusUpdater } from "@/components/admin/ticket-status-updater"
 import { TicketAssigner } from "@/components/admin/ticket-assigner"
@@ -15,9 +16,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatusBadge } from "@/components/status-badge"
 import { PriorityBadge } from "@/components/priority-badge"
 import { SentimentBadge } from "@/components/sentiment-badge"
+import { CategoryBadge } from "@/components/category-badge"
 import { AttachmentSection } from "@/components/attachments/attachment-section"
 import { TicketConversation } from "@/components/portal/ticket-conversation"
 import { getMessages } from "@/actions/ticket-actions"
+import { CategoryEditor } from "@/components/admin/category-editor"
+import { ReopenTicketDialog } from "@/components/admin/reopen-ticket-dialog"
+import { SlaTimer } from "@/components/admin/sla-timer"
 
 
 interface Props {
@@ -76,7 +81,6 @@ export default async function TicketDetailPage({ params }: Props) {
   }
 
   // RBAC Assignment Filtering
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let departmentFilter: any = {};
 
   if (session?.user?.id) {
@@ -193,6 +197,13 @@ export default async function TicketDetailPage({ params }: Props) {
                   ticketId={ticket.id}
                   initialMessages={messages as any}
                   userEmail={session?.user?.email}
+                  disabled={ticket.status === 'CLOSED' || ticket.status === 'RESOLVED'}
+                  ticketDescription={ticket.description || ""}
+                  ticketCreatedAt={ticket.createdAt}
+                  ticketUser={{
+                    name: ticket.user.name,
+                    email: ticket.user.email
+                  }}
                 />
               </div>
             </TabsContent>
@@ -219,6 +230,27 @@ export default async function TicketDetailPage({ params }: Props) {
             </CardHeader>
             <CardContent>
               <div className="grid gap-6">
+                {/* Closed ticket notice */}
+                {(ticket.status === 'CLOSED' || ticket.status === 'RESOLVED') && (
+                  <>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Lock className="h-4 w-4" />
+                      <span className="text-sm">{t('closedReadOnly')}</span>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+                
+                {/* SLA Timer */}
+                <SlaTimer 
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore - Prisma types regeneration pending
+                    slaTargetAt={ticket.slaTargetAt} 
+                    createdAt={ticket.createdAt} 
+                    status={ticket.status} 
+                    locale={resolvedParams.locale} 
+                />
+                
                 <div className="grid gap-3">
                   <span className="text-muted-foreground text-xs font-medium">{t('customer')}</span>
                   <div className="flex items-center gap-2">
@@ -236,11 +268,14 @@ export default async function TicketDetailPage({ params }: Props) {
                       {ticket.assignedTo ? (ticket.assignedTo.name || ticket.assignedTo.email) : t('unassigned')}
                     </span>
                   </div>
-                  <TicketAssigner
-                    ticketId={ticket.id}
-                    currentAssigneeId={ticket.assignedToId}
-                    users={agents}
-                  />
+                  {/* Hide assigner for closed tickets */}
+                  {ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED' && (
+                    <TicketAssigner
+                      ticketId={ticket.id}
+                      currentAssigneeId={ticket.assignedToId}
+                      users={agents}
+                    />
+                  )}
                 </div>
                 <Separator />
                 <div className="grid gap-3">
@@ -250,21 +285,48 @@ export default async function TicketDetailPage({ params }: Props) {
                   </div>
                 </div>
                 <Separator />
+                {/* Status section - below priority */}
                 <div className="grid gap-3">
-                  <span className="text-muted-foreground text-xs font-medium">{t('sentiment')}</span>
+                  <span className="text-muted-foreground text-xs font-medium">{t('status')}</span>
+                  {/* Show status or reopen button for closed tickets */}
+                  {ticket.status === 'CLOSED' || ticket.status === 'RESOLVED' ? (
+                    <ReopenTicketDialog ticketId={ticket.id} locale={resolvedParams.locale} />
+                  ) : (
+                    <TicketStatusUpdater ticketId={ticket.id} currentStatus={ticket.status} />
+                  )}
+                </div>
+                <Separator />
+                <div className="grid gap-3">
+                  <span className="text-muted-foreground text-xs font-medium">{t('category')}</span>
                   <div className="flex items-center gap-2">
-                    <SentimentBadge sentiment={ticket.sentiment as any} />
+                    {/* Manager/Team Lead can edit category */}
+                    {(session?.user?.role === 'MANAGER' || session?.user?.role === 'TEAM_LEAD') && 
+                     ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED' ? (
+                      <CategoryEditor 
+                        ticketId={ticket.id} 
+                        currentCategory={ticket.category || 'OTHER'} 
+                        canEdit={true}
+                      />
+                    ) : (
+                      <CategoryBadge category={ticket.category} locale={resolvedParams.locale} />
+                    )}
                   </div>
                 </div>
                 <Separator />
                 <div className="grid gap-3">
-                  <span className="text-muted-foreground text-xs font-medium">{t('status')}</span>
-                  <TicketStatusUpdater ticketId={ticket.id} currentStatus={ticket.status} />
+                  <span className="text-muted-foreground text-xs font-medium">{t('sentiment')}</span>
+                  <div className="flex items-center gap-2">
+                    <SentimentBadge sentiment={ticket.sentiment as 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' | null} />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <AttachmentSection ticketId={ticket.id} attachments={ticket.attachments} />
+          <AttachmentSection 
+            ticketId={ticket.id} 
+            attachments={ticket.attachments} 
+            disabled={ticket.status === 'CLOSED' || ticket.status === 'RESOLVED'}
+          />
         </div>
       </div>
     </div>

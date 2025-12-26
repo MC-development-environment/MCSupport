@@ -1,9 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Activity, CreditCard, Users, ArrowUpRight, Smile, AlertCircle, Ticket, Clock } from "lucide-react"
+import { ArrowUpRight, Smile, AlertCircle, Ticket, Clock } from "lucide-react"
 import { getTranslations } from 'next-intl/server';
 import { prisma } from "@/lib/prisma"
 import { format } from "date-fns"
-import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/status-badge"
 import { PriorityBadge } from "@/components/priority-badge"
 import { Button } from "@/components/ui/button"
@@ -17,29 +16,21 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
-import { Prisma } from "@prisma/client"
 import { getDashboardStats, formatDuration } from "@/lib/dashboard-stats";
-
-type TicketWithUser = Prisma.CaseGetPayload<{
-    include: {
-        user: true
-    }
-}>
-
 import { auth } from "@/auth"
 
-// Revalidate every 5 minutes
+// Revalidar cada 5 minutos
 export const revalidate = 300;
 
 export default async function AdminPage() {
     const t = await getTranslations('Admin');
-    const tEnums = await getTranslations('Enums');
+    // const tEnums = await getTranslations('Enums'); // Unused variable tEnums
 
     const session = await auth();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let whereClause: any = {};
 
-    // If not MANAGER, filter by ownership or assignment
+    // Si no es MANAGER, filtrar por propiedad o asignación
     if (session?.user?.role !== 'MANAGER' && session?.user?.id) {
         whereClause = {
             OR: [
@@ -63,22 +54,22 @@ export default async function AdminPage() {
         })
     ]);
 
-    // Helper for gradients - Subtle style
+    // Ayudante para degradados - Estilo sutil
     const getGradient = (type: string, value: number) => {
         switch (type) {
             case 'total':
                 return 'bg-gradient-to-t from-blue-500/20 to-transparent dark:from-blue-950/30 dark:to-card';
             case 'open':
-                // Open status is Blue, keeping consistency
+                // El estado Abierto es Azul, manteniendo consistencia
                 return 'bg-gradient-to-t from-blue-500/20 to-transparent dark:from-blue-950/30 dark:to-card';
             case 'time':
                 if (value < 60) return 'bg-gradient-to-t from-emerald-500/20 to-transparent dark:from-emerald-950/30 dark:to-card';
                 if (value < 240) return 'bg-gradient-to-t from-amber-500/20 to-transparent dark:from-amber-950/30 dark:to-card';
-                return 'bg-gradient-to-t from-rose-500/20 to-transparent dark:from-rose-950/30 dark:to-card'; // Rose
+                return 'bg-gradient-to-t from-rose-500/20 to-transparent dark:from-rose-950/30 dark:to-card'; // Rosa
             case 'sat':
                 if (value >= 90) return 'bg-gradient-to-t from-emerald-500/20 to-transparent dark:from-emerald-950/30 dark:to-card';
                 if (value >= 75) return 'bg-gradient-to-t from-amber-500/20 to-transparent dark:from-amber-950/30 dark:to-card';
-                return 'bg-gradient-to-t from-rose-500/20 to-transparent dark:from-rose-950/30 dark:to-card'; // Rose
+                return 'bg-gradient-to-t from-rose-500/20 to-transparent dark:from-rose-950/30 dark:to-card'; // Rosa
             default:
                 return '';
         }
@@ -166,9 +157,9 @@ export default async function AdminPage() {
                                     <TableRow>
                                         <TableHead>{t('ticketTitle')}</TableHead>
                                         <TableHead className="hidden xl:table-column">{t('customer')}</TableHead>
-                                        <TableHead className="hidden xl:table-column">{t('status')}</TableHead>
                                         <TableHead className="hidden xl:table-column">{t('date')}</TableHead>
                                         <TableHead className="text-right">{t('priority')}</TableHead>
+                                        <TableHead>{t('status')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -195,9 +186,6 @@ export default async function AdminPage() {
                                                 <TableCell className="hidden xl:table-column">
                                                     {ticket.user?.name}
                                                 </TableCell>
-                                                <TableCell className="hidden xl:table-column">
-                                                    <StatusBadge status={ticket.status} />
-                                                </TableCell>
                                                 <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
                                                     {format(ticket.createdAt, 'yyyy-MM-dd')}
                                                 </TableCell>
@@ -205,6 +193,9 @@ export default async function AdminPage() {
                                                     <div className="flex justify-end">
                                                         <PriorityBadge priority={ticket.priority} />
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <StatusBadge status={ticket.status} />
                                                 </TableCell>
                                             </TableRow>
                                         ))

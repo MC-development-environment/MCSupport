@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { Link, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -20,12 +20,9 @@ import {
     Sheet,
     SheetContent,
     SheetTrigger,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { signOut } from "next-auth/react"
-import { ThemeProvider } from "next-themes" // Not needed here directly if handled in layout? 
-// We need a theme toggle maybe?
-
-
 
 export interface SidebarProps {
     userRole?: string
@@ -37,6 +34,7 @@ export function AdminSidebar({ userRole }: SidebarProps) {
 
     const sidebarLinks = [
         { href: "/admin", label: t('dashboard'), icon: LayoutDashboard },
+        { href: "/admin/dashboard/my-work", label: "My Work", icon: Ticket }, // TODO: Agregar clave de traducción luego si es necesario o codificar por ahora
         { href: "/admin/tickets", label: t('tickets'), icon: Ticket },
         { href: "/admin/kb", label: t('kb'), icon: BookOpen },
         { href: "/admin/reports", label: t('reports'), icon: FileText },
@@ -92,6 +90,12 @@ export function MobileSidebar({ userRole }: SidebarProps) {
     const pathname = usePathname();
     const t = useTranslations('Admin');
     const [open, setOpen] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        // eslint-disable-next-line
+        setIsMounted(true);
+    }, []);
 
     const sidebarLinks = [
         { href: "/admin", label: t('dashboard'), icon: LayoutDashboard },
@@ -103,6 +107,10 @@ export function MobileSidebar({ userRole }: SidebarProps) {
     ]
 
     const filteredLinks = sidebarLinks.filter(link => !link.role || link.role === userRole);
+
+    if (!isMounted) {
+        return null;
+    }
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -117,9 +125,10 @@ export function MobileSidebar({ userRole }: SidebarProps) {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <nav className="grid gap-2 text-lg font-medium">
                     <Link
-                        href="#"
+                        href="/"
                         className="flex flex-col items-start gap-0 font-semibold mb-4 hover:opacity-90 transition-opacity"
                     >
                         <span className="text-xl font-bold text-primary tracking-tight">MCSupport</span>

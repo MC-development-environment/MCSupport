@@ -1,50 +1,58 @@
-import type { NextAuthConfig } from "next-auth"
-import Credentials from "next-auth/providers/credentials"
-import { z } from "zod"
+import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 
 export const authConfig = {
-    pages: {
-        signIn: '/login',
+  pages: {
+    signIn: "/login",
+  },
+  callbacks: {
+    authorized() {
+      // Manejamos la redirección explícitamente en la función principal de middleware.ts para evitar
+      // conflictos con next-intl y asegurar el orden de ejecución correcto.
+      return true;
     },
-    callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
-            // We handle redirection explicitly in middleware.ts main function to avoid
-            // conflict with next-intl and ensure correct execution order.
-            return true;
-        },
-        async jwt({ token, user }) {
-            if (user) {
-                token.role = user.role
-            }
-            return token
-        },
-        async session({ session, token }) {
-            if (token && session.user) {
-                session.user.role = token.role as string
-                session.user.id = token.sub as string
-            }
-            return session
-        }
+    async jwt({ token, user, trigger, session }) {
+      // Login inicial - guardar datos de usuario en token
+      if (user) {
+        token.role = user.role;
+        token.name = user.name;
+      }
+
+      // Actualización de perfil disparada desde cliente vía update()
+      if (trigger === "update" && session?.name) {
+        token.name = session.name;
+      }
+
+      return token;
     },
-    providers: [
-        Credentials({
-            name: "Email and Password",
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
-            },
-            async authorize(credentials) {
-                // Logic handled in the Node version (auth.ts), this is just definition placeholder 
-                // OR we define it here if we use fetch to an API. 
-                // But for Prisma override, we leave it simple here? 
-                // Actually, in v5, if we use separate config, the middleware uses THIS config.
-                // But authorize logic usually needs DB. 
-                // Middleware generally doesn't check credentials, it checks Session.
-                // So we can keep providers empty here? No, NextAuth needs providers.
-                // If we split, middleware only needs 'auth' function which verifies session token.
-                // We just need EMPTY providers or minimally defined here for types to pass?
-                return null;
-            }
-        })
-    ], // Providers added in auth.ts for full strategy
-} satisfies NextAuthConfig
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.role = token.role as string;
+        session.user.id = token.sub as string;
+        session.user.name = token.name as string;
+      }
+      return session;
+    },
+  },
+  providers: [
+    Credentials({
+      name: "Email and Password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        // La lógica se maneja en la versión de Node (auth.ts), esto es solo un placeholder de definición
+        // O lo definimos aquí si usamos fetch a una API.
+        // Pero para override de Prisma, lo dejamos simple aquí.
+        // De hecho, en v5, si usamos config separada, el middleware usa ESTA config.
+        // Pero la lógica de authorize usualmente necesita BD.
+        // El middleware generalmente no verifica credenciales, verifica Sesión.
+        // Así que podemos dejar providers vacíos aquí? No, NextAuth necesita providers.
+        // Si separamos, el middleware solo necesita la función 'auth' que verifica token de sesión.
+        // Solo necesitamos providers VACÍOS o definidos mínimamente aquí para pasar tipos?
+        return null;
+      },
+    }),
+  ], // Providers agregados en auth.ts para estrategia completa
+} satisfies NextAuthConfig;

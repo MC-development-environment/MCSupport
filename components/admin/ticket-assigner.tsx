@@ -31,15 +31,20 @@ export function TicketAssigner({ ticketId, currentAssigneeId, users }: Props) {
             if (!result.success) {
                 toast.error(tCommon('error'))
             } else {
-                toast.success(tCommon('success') || "Asignado exitosamente") // Add success key if missing
+                toast.success(tCommon('success') || "Asignado exitosamente") // Agregar clave de éxito si falta
             }
         })
     }
 
+    const selectedUser = users.find(u => u.id === assignee)
+    const displayText = selectedUser ? (selectedUser.name || selectedUser.email) : undefined
+
     return (
         <Select disabled={isPending} value={assignee} onValueChange={onValueChange}>
             <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('unassigned')} />
+                <SelectValue placeholder={t('unassigned')}>
+                    {displayText}
+                </SelectValue>
             </SelectTrigger>
             <SelectContent>
                 <SelectItem value="unassigned" disabled>{t('assignee')}</SelectItem>

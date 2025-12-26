@@ -51,36 +51,34 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  /* Brand Colors extracted from Multicomputos Logo */
-  --primary: oklch(0.45 0.15 240);
-  /* Brand Blue (Darker/Petrol Blue) */
+  /* Colores de Marca */
+  --primary: #19607e;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.45 0.15 240);
+  --secondary-foreground: #19607e;
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.45 0.15 240);
+  --accent-foreground: #19607e;
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.7 0.18 75);
-  /* Brand Orange for Focus Rings to stand out */
-  --chart-1: oklch(0.45 0.15 240);
-  /* Brand Blue */
-  --chart-2: oklch(0.7 0.18 75);
-  /* Brand Orange */
+  --ring: #ebae23;
+  /* Colores de Gráficos */
+  --chart-1: #19607e;
+  --chart-2: #ebae23;
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+  /* Colores de Barra Lateral */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: #19607e;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.488 0.243 264.376);
+  --sidebar-accent-foreground: #19607e;
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --sidebar-ring: #ebae23;
 }
 
 .dark {
@@ -90,8 +88,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.45 0.15 240);
-  /* Keep Brand Blue even in dark mode for consistency, or slightly lighter */
+  --primary: #19607e;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -102,25 +99,25 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.18 75);
-  /* Brand Orange */
-  --chart-1: oklch(0.45 0.15 240);
-  --chart-2: oklch(0.7 0.18 75);
+  --ring: #ebae23;
+  /* Chart Colors */
+  --chart-1: #19607e;
+  --chart-2: #ebae23;
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+  /* Sidebar Colors */
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: #19607e;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: #ebae23;
 }
 
 @layer base {
-
   html,
   body {
     @apply h-full w-full overflow-hidden;
@@ -132,5 +129,9 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  button {
+    cursor: pointer;
   }
 }

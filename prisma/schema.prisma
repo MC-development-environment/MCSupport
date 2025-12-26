@@ -16,6 +16,7 @@ enum UserRole {
   CONSULTANT
   DEVELOPER
   CLIENT
+  VIRTUAL_ASSISTANT
 }
 
 model Department {
@@ -25,8 +26,8 @@ model Department {
 }
 
 model AllowedClientEmail {
-  id      String @id @default(cuid())
-  email   String @unique
+  id       String  @id @default(cuid())
+  email    String  @unique
   isActive Boolean @default(true)
 }
 
@@ -37,55 +38,93 @@ model LoginOTP {
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
-  
+
   // Performance Indexes
   @@index([email, expiresAt])
   @@index([email, used])
 }
 
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String          @unique
+  email         String    @unique
   password      String?
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-  
-  role          UserRole        @default(CLIENT)
-  
-  departmentId  String?
-  department    Department?     @relation(fields: [departmentId], references: [id])
- 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  
+
+  role UserRole @default(CLIENT)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  // 🔐 Two-Factor Authentication
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String? // TOTP secret (base32 encoded)
+  backupCodes      String[] @default([]) // Hashed backup codes
+
+  // 🏷️ Skills for smart ticket assignment
+  skills UserSkill[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   cases         Case[]
-  assignedCases Case[] @relation("AssignedCases")
+  assignedCases Case[]       @relation("AssignedCases")
   articles      Article[]
   auditLogs     AuditLog[]
   uploads       Attachment[]
   messages      Message[]
+  surveysReceived Survey[] @relation("SurveyResolver")
+}
+
+// 🏷️ Skill Catalog - Predefined skills managed by admins
+model Skill {
+  id          String  @id @default(cuid())
+  name        String  @unique // e.g., "netsuite", "facturacion", "scripting"
+  description String? // Optional description
+
+  userSkills UserSkill[]
+
+  createdAt DateTime @default(now())
+
+  @@index([name])
+}
+
+// 🏷️ User Skills - Junction table linking users to skills
+model UserSkill {
+  id      String @id @default(cuid())
+  userId  String
+  skillId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, skillId]) // No duplicate skills per user
+  @@index([userId])
+  @@index([skillId])
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
-  action    String   // CREATE, UPDATE, ASSIGN, DELETE, LOGIN
-  entity    String   // TICKET, USER, SYSTEM
+  action    String // CREATE, UPDATE, ASSIGN, DELETE, LOGIN
+  entity    String // TICKET, USER, SYSTEM
   entityId  String
   actorId   String
   actor     User     @relation(fields: [actorId], references: [id])
   details   Json?
   createdAt DateTime @default(now())
-  
+
   // Performance Indexes
   @@index([entityId])
   @@index([actorId])
   @@index([createdAt])
   @@index([entity, entityId])
 }
- 
+
 model Account {
   userId            String
   type              String
@@ -98,60 +137,69 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   @@id([provider, providerAccountId])
 }
- 
+
 model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
- 
+
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
+
   @@id([identifier, token])
 }
- 
+
 // Optional for WebAuthn support
 // ... (Previous Auth models)
 
 model Case {
-  id          String   @id @default(cuid())
-  ticketNumber String  @unique
-  title       String
-  description String
-  status      CaseStatus @default(OPEN)
-  priority    Priority   @default(MEDIUM)
-  sentiment   Sentiment  @default(NEUTRAL)
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
+  id           String         @id @default(cuid())
+  ticketNumber String         @unique
+  title        String
+  description  String
+  status       CaseStatus     @default(OPEN)
+  priority     Priority       @default(MEDIUM)
+  sentiment    Sentiment      @default(NEUTRAL)
+  category     TicketCategory @default(OTHER)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
   assignedToId String?
   assignedTo   User?   @relation("AssignedCases", fields: [assignedToId], references: [id])
 
-  ccEmails    String[] @default([])  // Email addresses for CC notifications
+  ccEmails String[] @default([]) // Email addresses for CC notifications
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  slaTargetAt DateTime? // SLA Deadline calculated based on priority and business hours
+  slaPausedAt DateTime? // When the ticket was put into a paused status (e.g. WAITING_CUSTOMER)
+  totalPausedMinutes Int @default(0) // Total accumulated minutes paused
+
+  // NetSuite Integration
+  netsuiteId    String?   @unique // Internal ID in NetSuite
+  netsuiteUrl   String?   // Deep link to the record
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Future: Messages
   messages    Message[]
   attachments Attachment[]
-  
+
   // Performance Indexes
   @@index([status])
   @@index([priority])
@@ -160,23 +208,40 @@ model Case {
   @@index([assignedToId])
   @@index([status, createdAt])
   @@index([priority, status])
+
+  // Survey
+  surveyRequestedAt DateTime?
+  survey            Survey?
+}
+
+model Survey {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  ticketId  String   @unique
+  ticket    Case     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  resolvedById String?
+  resolvedBy   User?   @relation("SurveyResolver", fields: [resolvedById], references: [id])
+  
+  createdAt DateTime @default(now())
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  content   String
-  
-  ticketId  String
-  ticket    Case     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  
-  senderId  String
-  sender    User     @relation(fields: [senderId], references: [id])
-  
+  id      String @id @default(cuid())
+  content String
+
+  ticketId String
+  ticket   Case   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
   isInternal Boolean @default(false)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Performance Indexes
   @@index([ticketId])
   @@index([senderId])
@@ -204,24 +269,36 @@ enum Sentiment {
   NEGATIVE
 }
 
-// ... (Previous models)
+enum TicketCategory {
+  NETSUITE_ERROR
+  ACCESS_ISSUE
+  FEATURE_REQUEST
+  HOW_TO
+  BILLING
+  INTEGRATION
+  PERFORMANCE
+  DEVELOPMENT
+  INTERNAL
+  OTHER
+}
 
 model Article {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
-  slug        String   @unique
-  content     String   // Markdown support
-  isPublished Boolean  @default(false)
-  viewCount   Int      @default(0)
-  
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
+  slug        String  @unique
+  content     String // Markdown support
+  isPublished Boolean @default(false)
+  isInternal  Boolean @default(false)
+  viewCount   Int     @default(0)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Category {
@@ -233,38 +310,45 @@ model Category {
 }
 
 model Attachment {
-  id        String   @id @default(cuid())
-  name      String
-  url       String
-  size      Int
-  type      String   // MIME type
-  
-  ticketId  String
-  ticket    Case     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  uploader  User     @relation(fields: [userId], references: [id])
-  
+  id   String @id @default(cuid())
+  name String
+  url  String
+  size Int
+  type String // MIME type
+
+  ticketId String
+  ticket   Case   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  userId   String
+  uploader User   @relation(fields: [userId], references: [id])
+
   createdAt DateTime @default(now())
 }
 
-
 model SystemConfig {
-  id                String   @id @default(cuid())
-  companyName       String   @default("Multicomputos")
-  supportEmail      String   @default("support@multicomputos.com")
-  maintenanceMode   Boolean  @default(false)
-  maxUploadSizeMB   Int      @default(5)
-  allowedFileTypes  String   @default(".jpg,.png,.pdf,.doc,.docx")
-  
+  id               String  @id @default(cuid())
+  companyName      String  @default("Multicomputos")
+  supportEmail     String  @default("support@multicomputos.com")
+  maintenanceMode  Boolean @default(false)
+  maxUploadSizeMB  Int     @default(5)
+  allowedFileTypes String  @default(".jpg,.png,.pdf,.doc,.docx")
+
   // Assistant Configuration
-  assistantName     String   @default("LAU")
-  assistantEnabled  Boolean  @default(true)
-  
-  // Business Hours (24h format)
-  businessHoursStart Int     @default(9)
-  businessHoursEnd   Int     @default(18)
-  
-  updatedAt         DateTime @updatedAt
-  updatedBy         String?
+  assistantName    String  @default("LAU")
+  assistantEnabled Boolean @default(true)
+
+  // SLA Configuration (Hours)
+  slaLow      Int @default(48)
+  slaMedium   Int @default(24)
+  slaHigh     Int @default(8)
+  slaCritical Int @default(4)
+
+  // Business Hours & Schedule
+  businessHoursStart Int      @default(9)
+  businessHoursEnd   Int      @default(18)
+  workDays           String[] @default(["1", "2", "3", "4", "5"]) // 0=Sun, 1=Mon...
+  timeZone           String   @default("America/Santo_Domingo")
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?
 }

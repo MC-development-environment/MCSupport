@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'daily';
+    const userId = searchParams.get('userId');
 
     let startDate = new Date();
     const endDate = new Date();
@@ -27,6 +28,12 @@ export async function GET(request: Request) {
             break;
         case 'monthly':
             startDate = subMonths(new Date(), 1);
+            break;
+        case 'quarterly':
+            startDate = subMonths(new Date(), 3);
+            break;
+        case 'semester':
+            startDate = subMonths(new Date(), 6);
             break;
         case 'yearly':
             startDate = subYears(new Date(), 1);
@@ -45,6 +52,31 @@ export async function GET(request: Request) {
             lte: endDate
         }
     };
+
+    // Filter by employee if userId provided
+    if (userId) {
+        // TECHNICIAN can only view their own data
+        if (session.user.role && (session.user.role as string) === 'TECHNICIAN' && userId !== session.user.id) {
+            return new NextResponse('Unauthorized', { status: 403 });
+        }
+        
+        // TEAM_LEAD can only view users in their department
+        if (session.user.role === 'TEAM_LEAD') {
+            const currentUser = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { departmentId: true }
+            });
+            const targetUser = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { departmentId: true }
+            });
+            if (currentUser?.departmentId !== targetUser?.departmentId) {
+                return new NextResponse('Unauthorized', { status: 403 });
+            }
+        }
+        
+        whereClause.assignedToId = userId;
+    }
 
     if (session.user.role === 'TEAM_LEAD') {
         const currentUser = await prisma.user.findUnique({ where: { id: session.user.id } });
@@ -87,10 +119,27 @@ export async function GET(request: Request) {
         ...rows.map((r: string[]) => r.join(','))
     ].join('\n');
 
-    return new NextResponse(csvContent, {
+    // Add UTF-8 BOM (Byte Order Mark) for proper encoding in Excel
+    const utf8BOM = '\uFEFF';
+    const csvWithBOM = utf8BOM + csvContent;
+
+    // Build filename with employee name if filtered
+    let filename = `report-${period}-${format(new Date(), 'yyyyMMdd')}`;
+    if (userId) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, email: true }
+        });
+        if (user) {
+            const userName = (user.name || user.email).replace(/[^a-zA-Z0-9]/g, '_');
+            filename = `report-${period}-${userName}-${format(new Date(), 'yyyyMMdd')}`;
+        }
+    }
+
+    return new NextResponse(csvWithBOM, {
         headers: {
-            'Content-Type': 'text/csv',
-            'Content-Disposition': `attachment; filename="report-${period}-${format(new Date(), 'yyyyMMdd')}.csv"`
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': `attachment; filename="${filename}.csv"`
         }
     })
 }

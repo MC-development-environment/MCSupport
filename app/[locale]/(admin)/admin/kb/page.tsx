@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusCircle, FileText } from "lucide-react"
+import { PlusCircle, FileText, Eye } from "lucide-react"
 import { format } from "date-fns"
 import { getTranslations } from 'next-intl/server';
 
@@ -51,7 +51,7 @@ export default async function KnowledgeBasePage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>{t('ticketTitle')}</TableHead>
-                                <TableHead>{t('category')}</TableHead>
+                                <TableHead>{t('kbCategory')}</TableHead>
                                 <TableHead>{t('status')}</TableHead>
                                 <TableHead className="hidden md:table-cell">{t('author')}</TableHead>
                                 <TableHead className="hidden md:table-cell">{t('lastUpdated')}</TableHead>
@@ -71,12 +71,18 @@ export default async function KnowledgeBasePage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">{article.category.name}</Badge>
+                                        <Badge variant="secondary" className="gap-1 text-xs font-medium bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">{t.has(`KBCategories.${article.category.name}`) ? t(`KBCategories.${article.category.name}`) : article.category.name}</Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={article.isPublished ? 'secondary' : 'outline'}>
-                                            {article.isPublished ? t('published') : t('draft')}
-                                        </Badge>
+                                        {article.isPublished ? (
+                                            <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/25">
+                                                {t('published')}
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="text-muted-foreground">
+                                                {t('draft')}
+                                            </Badge>
+                                        )}
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">
                                         {article.author.name}
@@ -85,9 +91,17 @@ export default async function KnowledgeBasePage() {
                                         {format(article.updatedAt, 'yyyy-MM-dd')}
                                     </TableCell>
                                     <TableCell>
-                                        <Link href={`/admin/kb/${article.id}`}>
-                                            <Button variant="ghost" size="sm">{t('edit')}</Button>
-                                        </Link>
+                                        <div className="flex items-center gap-1">
+                                            <Link href={`/admin/kb/${article.id}/view`}>
+                                                <Button variant="ghost" size="sm" className="gap-1">
+                                                    <Eye className="h-3.5 w-3.5" />
+                                                    {t('view')}
+                                                </Button>
+                                            </Link>
+                                            <Link href={`/admin/kb/${article.id}`}>
+                                                <Button variant="ghost" size="sm">{t('edit')}</Button>
+                                            </Link>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}

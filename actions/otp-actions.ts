@@ -1,30 +1,37 @@
-"use server"
+"use server";
 
-import { prisma } from "@/lib/prisma"
-import { randomInt } from "crypto"
-import { addMinutes } from "date-fns"
-import { getTranslations } from "next-intl/server"
+import { prisma } from "@/lib/prisma";
+import { randomInt } from "crypto";
+import { addMinutes } from "date-fns";
+import { getTranslations } from "next-intl/server";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
-// Mock Email Sender
+// Simulador de envío de correo
 async function sendEmail(email: string, code: string) {
-    console.log(`[MOCK EMAIL] To: ${email}, Code: ${code}`)
-    // In production, integrate Resend or Nodemailer here
-    return true;
+  console.log(`[MOCK EMAIL] To: ${email}, Code: ${code}`);
+  // En producción, integrar Resend o Nodemailer aquí
+  return true;
 }
 
 export async function requestOtp(email: string) {
-    const t = await getTranslations('Login.Otp');
+  const t = await getTranslations("Login.Otp");
 
-    // 1. Check if email is allowed (Whitelist)
-    // For now, allow @multicomputos.com or if exists in AllowedClientEmail table.
-    // If table is empty, maybe allow all for dev?
-    // User Requirement: "solo correos habilitados... lista blanca".
-    // I will check the table.
+  // Verificación de límite de tasa - 3 solicitudes OTP cada 5 minutos
+  const rateCheck = checkRateLimit(email, "otp");
+  if (!rateCheck.success) {
+    return { error: rateCheck.message };
+  }
 
-    // Allow internal domain for testing too? "el cliente solo debe poner su correo".
-    // Let's implement strict check.
+  // 1. Verificar si el correo está permitido (Lista blanca)
+  // Por ahora, permitir @multicomputos.com o si existe en la tabla AllowedClientEmail.
+  // If table is empty, maybe allow all for dev?
+  // User Requirement: "solo correos habilitados... lista blanca".
+  // I will check the table.
 
-    /* 
+  // ¿Permitir dominio interno para pruebas también? "el cliente solo debe poner su correo".
+  // Vamos a implementar verificación estricta.
+
+  /* 
     const allowed = await prisma.allowedClientEmail.findUnique({
         where: { email }
     })
@@ -37,53 +44,55 @@ export async function requestOtp(email: string) {
     }
     */
 
-    // Strict logic: Must be in allowed list OR be an existing user (maybe created by Netsuite integration).
-    // Let's check user first.
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (!existingUser) {
-        // Check whitelist
-        const allowed = await prisma.allowedClientEmail.findUnique({ where: { email } });
-        if (!allowed || !allowed.isActive) {
-            return { error: t('emailNotAuthorized') };
-        }
+  // Lógica estricta: Debe estar en la lista permitida O ser un usuario existente (quizás creado por integración Netsuite).
+  // Vamos a verificar el usuario primero.
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (!existingUser) {
+    // Verificar lista blanca
+    const allowed = await prisma.allowedClientEmail.findUnique({
+      where: { email },
+    });
+    if (!allowed || !allowed.isActive) {
+      return { error: t("emailNotAuthorized") };
     }
+  }
 
-    // 2. Generate Code
-    const code = randomInt(100000, 999999).toString();
-    const expiresAt = addMinutes(new Date(), 15); // 15 min validity
+  // 2. Generar código
+  const code = randomInt(100000, 999999).toString();
+  const expiresAt = addMinutes(new Date(), 15); // 15 min de validez
 
-    // 3. Store in DB
-    await prisma.loginOTP.create({
-        data: {
-            email,
-            code,
-            expiresAt
-        }
-    })
+  // 3. Guardar en BD
+  await prisma.loginOTP.create({
+    data: {
+      email,
+      code,
+      expiresAt,
+    },
+  });
 
-    // 4. Send Email
-    await sendEmail(email, code);
+  // 4. Enviar correo
+  await sendEmail(email, code);
 
-    return { success: true, message: t('codeSent') };
+  return { success: true, message: t("codeSent") };
 }
 
 export async function verifyOtpAction(email: string, code: string) {
-    // This action acts as a pre-check or alternative to signIn if needed, 
-    // but actual session creation happens in 'auth.ts' provider.
-    // We can use this to validate and then call signIn on client.
+  // Esta acción actúa como una verificación previa o alternativa a signIn si es necesario,
+  // pero la creación real de la sesión ocurre en el proveedor 'auth.ts'.
+  // Podemos usar esto para validar y luego llamar a signIn en el cliente.
 
-    const validOtp = await prisma.loginOTP.findFirst({
-        where: {
-            email,
-            code,
-            used: false,
-            expiresAt: { gt: new Date() }
-        }
-    })
+  const validOtp = await prisma.loginOTP.findFirst({
+    where: {
+      email,
+      code,
+      used: false,
+      expiresAt: { gt: new Date() },
+    },
+  });
 
-    if (!validOtp) {
-        return { success: false }
-    }
+  if (!validOtp) {
+    return { success: false };
+  }
 
-    return { success: true }
+  return { success: true };
 }

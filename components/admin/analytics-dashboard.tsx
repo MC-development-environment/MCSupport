@@ -25,7 +25,7 @@ import { es, enUS } from "date-fns/locale"
 import { useTranslations, useLocale } from "next-intl"
 import { CaseStatus } from "@prisma/client"
 
-// Premium Palette Constants
+// Constantes de Paleta Premium
 const COLORS = {
     OPEN: '#3b82f6', // Blue-500
     RESOLVED: '#10b981', // Emerald-500
@@ -41,6 +41,10 @@ interface AnalyticsData {
         open: number;
         resolved: number;
         resolutionRate: number;
+        slaCompliance: number;
+        overdue: number;
+        csat: number;
+        surveyCount: number;
     };
     byStatus: { name: string; value: number }[];
     byPriority: { name: string; value: number }[];
@@ -57,7 +61,7 @@ interface AnalyticsData {
     }[];
 }
 
-// Helper to get color by status key
+// Auxiliar para obtener color por clave de estado
 const getChartColor = (status: string) => {
     switch (status) {
         case 'OPEN': return COLORS.OPEN;
@@ -69,9 +73,9 @@ const getChartColor = (status: string) => {
     }
 }
 
-// Helper for recent tickets
+// Auxiliar para tickets recientes
 const getStatusColor = (status: string) => {
-    // Matches Premium Palette in StatusBadge
+    // Coincide con Paleta Premium en StatusBadge
     switch (status) {
         case 'OPEN': return 'bg-blue-500/10 text-blue-700 border-blue-500/20 border whitespace-nowrap shrink-0';
         case 'IN_PROGRESS': return 'bg-amber-500/10 text-amber-700 border-amber-500/20 border whitespace-nowrap shrink-0';
@@ -87,18 +91,34 @@ const getGradient = (type: string, value: number) => {
         case 'total':
             return 'bg-gradient-to-t from-blue-500/20 to-transparent dark:from-blue-950/30 dark:to-transparent';
         case 'open':
-            // "Open" State is Blue.
+            // Estado "Abierto" es Azul.
             return 'bg-gradient-to-t from-blue-500/20 to-transparent dark:from-blue-950/30 dark:to-transparent';
         case 'resolved':
             return 'bg-gradient-to-t from-emerald-500/20 to-transparent dark:from-emerald-950/30 dark:to-transparent';
         case 'trend':
             return 'bg-gradient-to-t from-emerald-500/20 to-transparent dark:from-emerald-950/30 dark:to-transparent';
+        case 'overdue':
+            // Siempre rojo para identificación de categoría Vencido
+            return 'bg-gradient-to-t from-red-500/20 to-transparent dark:from-red-950/30 dark:to-transparent';
+        case 'sla':
+            // Verde si es alto, amarillo/rojo si es bajo
+            if (value >= 90) return 'bg-gradient-to-t from-emerald-500/20 to-transparent dark:from-emerald-950/30 dark:to-transparent';
+            if (value >= 75) return 'bg-gradient-to-t from-yellow-500/20 to-transparent dark:from-yellow-950/30 dark:to-transparent';
+            return 'bg-gradient-to-t from-red-500/20 to-transparent dark:from-red-950/30 dark:to-transparent';
+        case 'csat':
+             if (value >= 4.5) return 'bg-gradient-to-t from-emerald-500/20 to-transparent dark:from-emerald-950/30 dark:to-transparent';
+             if (value >= 3.5) return 'bg-gradient-to-t from-yellow-500/20 to-transparent dark:from-yellow-950/30 dark:to-transparent';
+             return 'bg-gradient-to-t from-red-500/20 to-transparent dark:from-red-950/30 dark:to-transparent';
         default:
             return '';
     }
 };
 
-export function AnalyticsDashboard() {
+interface AnalyticsDashboardProps {
+    userId?: string;
+}
+
+export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps = {}) {
     const [period, setPeriod] = useState<AnalyticsPeriod>('30d');
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -110,12 +130,12 @@ export function AnalyticsDashboard() {
 
     useEffect(() => {
         startTransition(async () => {
-            const result = await getAnalytics(period);
+            const result = await getAnalytics(period, userId);
             if (!result.error) {
                 setData(result as AnalyticsData);
             }
         });
-    }, [period]);
+    }, [period, userId]);
 
     if (!data && isPending) {
         return <div className="flex h-96 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
@@ -138,7 +158,7 @@ export function AnalyticsDashboard() {
 
     return (
         <div className="space-y-4 relative">
-            {/* Loading Overlay */}
+            {/* Superposición de carga */}
             {isPending && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-lg transition-all">
                     <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -146,18 +166,20 @@ export function AnalyticsDashboard() {
             )}
             <div className={`space-y-4 transition-opacity duration-300 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <Tabs value={period} onValueChange={(v) => setPeriod(v as AnalyticsPeriod)} className="w-[400px]">
+                    <Tabs value={period} onValueChange={(v) => setPeriod(v as AnalyticsPeriod)} className="w-full sm:w-auto">
                         <TabsList>
                             <TabsTrigger value="7d">{t('tabs.7d')}</TabsTrigger>
                             <TabsTrigger value="30d">{t('tabs.30d')}</TabsTrigger>
                             <TabsTrigger value="90d">{t('tabs.90d')}</TabsTrigger>
+                            <TabsTrigger value="180d">{t('tabs.180d')}</TabsTrigger>
+                            <TabsTrigger value="365d">{t('tabs.365d')}</TabsTrigger>
                             <TabsTrigger value="all">{t('tabs.all')}</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
 
-                {/* KPI Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {/* Tarjetas KPI */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
                     <Card className={getGradient('total', data?.summary.total || 0)}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{t('totalTickets')}</CardTitle>
@@ -188,6 +210,8 @@ export function AnalyticsDashboard() {
                             <p className="text-xs text-muted-foreground">{data.summary.resolutionRate}% {t('resolutionRate')}</p>
                         </CardContent>
                     </Card>
+
+
                     <Card className={getGradient('trend', 0)}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{t('trend')}</CardTitle>
@@ -200,10 +224,44 @@ export function AnalyticsDashboard() {
                             <p className="text-xs text-muted-foreground">{t('newToday')}</p>
                         </CardContent>
                     </Card>
+                    
+                    <Card className={getGradient('sla', data?.summary.slaCompliance || 0)}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">{t('slaCompliance') || 'SLA Compliance'}</CardTitle>
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{data.summary.slaCompliance}%</div>
+                            <p className="text-xs text-muted-foreground">{t('target') || 'Target'}: 90%</p>
+                        </CardContent>
+                    </Card>
+                    <Card className={getGradient('overdue', data?.summary.overdue || 0)}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">{t('overdue') || 'Overdue'}</CardTitle>
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{data.summary.overdue}</div>
+                            <p className="text-xs text-muted-foreground">{t('requiresAction') || 'Requires Action'}</p>
+                        </CardContent>
+                    </Card>
+                    {/* CSAT Card */}
+                    <Card className={getGradient('csat', data?.summary.csat || 0)}>
+                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">{t('customerSat') || 'CSAT'}</CardTitle>
+                            <div className="flex">
+                                {[1].map((_, i) => <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-yellow-500"><path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" /></svg>)}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{data.summary.csat} / 5</div>
+                            <p className="text-xs text-muted-foreground">{data.summary.surveyCount} {t('ratings') || 'Ratings'}</p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    {/* Trend Chart */}
+                    {/* Gráfico de Tendencia */}
                     <Card className="col-span-4">
                         <CardHeader>
                             <CardTitle>{t('volumeTitle')}</CardTitle>
@@ -251,7 +309,7 @@ export function AnalyticsDashboard() {
                         </CardContent>
                     </Card>
 
-                    {/* Status Distribution */}
+                    {/* Distribución de Estado */}
                     <Card className="col-span-3">
                         <CardHeader>
                             <CardTitle>{t('statusTitle')}</CardTitle>
@@ -286,7 +344,7 @@ export function AnalyticsDashboard() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    {/* Priority Breakdown */}
+                    {/* Desglose de Prioridad */}
                     <Card className="col-span-3">
                         <CardHeader>
                             <CardTitle>{t('priorityTitle')}</CardTitle>
@@ -306,7 +364,7 @@ export function AnalyticsDashboard() {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Activity */}
+                    {/* Actividad Reciente */}
                     <Card className="col-span-4">
                         <CardHeader>
                             <CardTitle>{t('recentTitle')}</CardTitle>

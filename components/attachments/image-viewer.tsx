@@ -19,13 +19,13 @@ export function ImageViewer({ isOpen, onClose, imageUrl, imageName }: ImageViewe
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden border-0 [&>button]:hidden">
-                {/* Hidden title for accessibility */}
+                {/* Título oculto para accesibilidad */}
                 <DialogTitle className="sr-only">
                     {imageName}
                 </DialogTitle>
 
                 <div className="relative w-full h-[90vh] flex flex-col bg-black">
-                    {/* Header with close button */}
+                    {/* Encabezado con botón de cerrar */}
                     <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-gradient-to-b from-black via-black/80 to-transparent">
                         <h3 className="text-white font-medium truncate max-w-[80%] text-sm">
                             {imageName}
@@ -43,7 +43,7 @@ export function ImageViewer({ isOpen, onClose, imageUrl, imageName }: ImageViewe
                         </DialogClose>
                     </div>
 
-                    {/* Image container */}
+                    {/* Contenedor de imagen */}
                     <div className="relative w-full h-full flex items-center justify-center">
                         <Image
                             src={imageUrl}
@@ -55,7 +55,7 @@ export function ImageViewer({ isOpen, onClose, imageUrl, imageName }: ImageViewe
                         />
                     </div>
 
-                    {/* Download button */}
+                    {/* Botón de descarga */}
                     <div className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
                         <Button
                             asChild

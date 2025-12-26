@@ -71,7 +71,7 @@ export function ClientLoginForm() {
             });
 
             if (result?.error) {
-                toast.error(t('invalidCredentials')); // Or generic error
+                toast.error(t('invalidCredentials')); // O error genérico
             } else {
                 router.push(callbackUrl);
                 toast.success("Bienvenido!");

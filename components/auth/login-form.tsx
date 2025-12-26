@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition, useState } from "react" // Verify import
+import { useTransition, useState } from "react" // Verificar importación
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -17,7 +17,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { authenticate } from "@/actions/auth-actions" // Need to create this or check if exists
+import { authenticate } from "@/actions/auth-actions" // Necesita ser creado o verificar que existe
 import { Loader2 } from "lucide-react"
 
 
@@ -26,10 +26,15 @@ const LoginSchema = z.object({
     password: z.string().min(1),
 })
 
+import { TwoFactorVerification } from "@/components/auth/two-factor-verification"
+
 export function LoginForm() {
     const t = useTranslations('Login');
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | undefined>("");
+    const [showTwoFactor, setShowTwoFactor] = useState(false);
+    const [userId, setUserId] = useState<string>("");
+    const [pendingValues, setPendingValues] = useState<z.infer<typeof LoginSchema> | null>(null);
     const router = useRouter();
 
     const form = useForm<z.infer<typeof LoginSchema>>({
@@ -44,13 +49,54 @@ export function LoginForm() {
         setError("");
         startTransition(async () => {
             const result = await authenticate(values);
+            
             if (result?.error) {
                 setError(result.error);
-            } else {
+                return;
+            }
+
+            if (result?.twoFactor && result.userId) {
+                setUserId(result.userId);
+                setPendingValues(values);
+                setShowTwoFactor(true);
+                return;
+            }
+
+            if (result?.success) {
                 router.push('/admin');
                 router.refresh();
             }
         });
+    }
+
+    const onVerify2FA = async (code: string) => {
+        if (!pendingValues) return { error: "Session expired" };
+        
+        try {
+            const result = await authenticate({ ...pendingValues, code });
+            if (result?.error) {
+                return { error: result.error };
+            }
+            if (result?.success) {
+                router.push('/admin');
+                router.refresh();
+                return {};
+            }
+        } catch (e) {
+            return { error: t('error') };
+        }
+        return { error: t('error') };
+    }
+
+    if (showTwoFactor) {
+        return (
+            <TwoFactorVerification
+                userId={userId}
+                onSuccess={() => {}} // Manejado dentro de onVerify
+                onVerify={onVerify2FA}
+                onCancel={() => setShowTwoFactor(false)}
+            />
+        );
     }
 
     return (

@@ -46,7 +46,7 @@ vi.mock('@/lib/audit-service', () => ({
 }));
 
 // Mock Assistant Service
-vi.mock('@/lib/assistant-service', () => ({
+vi.mock('@/lib/lau', () => ({
     AssistantService: {
         getAssistantUser: vi.fn().mockResolvedValue({ id: 'lau-id' }),
     },
