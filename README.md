@@ -4,37 +4,49 @@ MCSupport es una plataforma moderna de gestión de tickets y soporte técnico di
 
 ## Características Principales
 
-*   **Panel Administrativo**: Dashboard con métricas, gestión de tickets y base de conocimiento.
-*   **Internacionalización (i18n)**: Soporte completo para Inglés (`/en`) y Español (`/es`).
-*   **Diseño Responsivo**: Interfaz optimizada para móviles y escritorio con Branding corporativo.
-*   **Integración API**: Endpoint seguro para recibir tickets desde sistemas externos (Netsuite).
-*   **PWA**: Instalable como aplicación web progresiva.
-*   **Modo Oscuro**: Soporte nativo para temas claro y oscuro.
+- **Panel Administrativo**: Dashboard con métricas, gestión de tickets y base de conocimiento.
+- **Internacionalización (i18n)**: Soporte completo para Inglés (`/en`) y Español (`/es`).
+- **Diseño Responsivo**: Interfaz optimizada para móviles y escritorio con Branding corporativo.
+- **Gestión de Configuración Global**: Control de parámetros del sistema (horarios, correos) desde UI.
+- **Filtrado Avanzado**: Búsqueda detallada de tickets y asignación jerárquica.
+- **Asistente Virtual (LAU)**: IA con respuestas contextuales y análisis de sentimiento.
+- **Automatización de Tickets**: Cierre automático tras 24h de resolución y envío de encuestas de satisfacción.
+- **Comunicación Mejorada**: Soporte para copias (CC) en tickets y notas internas para agentes.
+- **Seguridad Avanzada**: Autenticación de dos factores (2FA) con códigos de respaldo.
+- **Integración API**: Endpoint seguro para recibir tickets desde sistemas externos (Netsuite).
+- **Gestión de Archivos**: Carga robusta de adjuntos (hasta 20MB) con validación.
+- **Monitoreo y Rendimiento**: Integración con Sentry, SEO optimizado y despliegue Dockerizado.
+- **PWA**: Instalable como aplicación web progresiva.
+- **Modo Oscuro**: Soporte nativo para temas claro y oscuro.
+- **Modo Vacaciones**: Gestión de ausencias para agentes con reasignación y respuestas automáticas.
 
 ## Stack Tecnológico
 
-*   **Framework**: Next.js 16 (App Router)
-*   **Lenguaje**: TypeScript
-*   **Base de Datos**: PostgreSQL / Prisma ORM
-*   **Estilos**: Tailwind CSS + Shadcn/UI
-*   **Autenticación**: Auth.js (NextAuth v5)
-*   **Internacionalización**: next-intl
+- **Framework**: Next.js 16 (App Router)
+- **Lenguaje**: TypeScript
+- **Base de Datos**: PostgreSQL / Prisma ORM
+- **Estilos**: Tailwind CSS + Shadcn/UI
+- **Autenticación**: Auth.js (NextAuth v5)
+- **Internacionalización**: next-intl
 
 ## Configuración Local
 
 1.  **Clonar el repositorio**:
+
     ```bash
     git clone <repo-url>
     cd mc_support
     ```
 
 2.  **Instalar dependencias**:
+
     ```bash
     npm install
     ```
 
 3.  **Configurar Variables de Entorno**:
     Crear un archivo `.env` en la raíz basado en `.env.example`:
+
     ```env
     DATABASE_URL="postgresql://user:password@localhost:5432/mc_support"
     AUTH_SECRET="your-secret-key"
@@ -42,37 +54,52 @@ MCSupport es una plataforma moderna de gestión de tickets y soporte técnico di
     ```
 
 4.  **Inicializar Base de Datos**:
+
     ```bash
     npx prisma migrate dev
     npx prisma db seed
     ```
-    *Esto creará un usuario administrador por defecto: `admin@multicomputos.com` / `admin123`*
+
+    _Esto creará un usuario administrador por defecto: `admin@multicomputos.com` / `admin123`_
 
 5.  **Correr Servidor de Desarrollo**:
+6.  **Correr Tests**:
+
     ```bash
-    npm run dev
+    # Tests Unitarios
+    npm run test
+
+    # Tests E2E (Playwright)
+    npm run test:e2e
+    npm run test:e2e:ui # Con interfaz visual
     ```
-    Acceder a `http://localhost:3000`.
 
 ## Estructura del Proyecto
 
-*   `app/[locale]/(admin)`: Rutas protegidas del panel administrativo.
-*   `app/[locale]/(portal)`: Portal de autoservicio para clientes.
-*   `app/api/integration`: Endpoints para integraciones externas.
-*   `components`: Componentes reutilizables UI y de negocio.
-*   `messages`: Archivos de traducción JSON.
-*   `prisma`: Esquema de base de datos y scripts de semilla.
+- `app/[locale]/(admin)`: Rutas protegidas del panel administrativo.
+- `app/[locale]/(portal)`: Portal de autoservicio para clientes.
+- `app/api/integration`: Endpoints para integraciones externas.
+- `components`: Componentes reutilizables UI y de negocio.
+- `messages`: Archivos de traducción JSON.
+- `prisma`: Esquema de base de datos y scripts de semilla.
 
 ## Documentación
 
-El proyecto cuenta con documentación detallada para diferentes perfiles:
+La documentación se encuentra organizada en la carpeta `docs/`:
 
-*   📘 **[Manual de Usuario](doc/Manual_Usuario.md)**: Guía paso a paso con capturas de pantalla sobre cómo utilizar el sistema, gestionar tickets y ver reportes.
-*   🛠️ **[Guía Técnica](doc/Guia_Tecnica.md)**: Documentación profunda para desarrolladores sobre arquitectura, base de datos, seguridad y despliegue.
+- 📘 **[Manual de Cliente](docs/Manual_Cliente.md)**: Guía para clientes del portal de autoservicio.
+- 📕 **[Manual Operativo](docs/Manual_Operativo.md)**: Guía para agentes y administradores del sistema.
+- 🛠️ **[Guía Técnica](docs/Guia_Tecnica.md)**: Detalles de arquitectura, base de datos y despliegue.
+- 🔌 **[Integración NetSuite](docs/NETSUITE_INTEGRATION.md)**: Guía de configuración y uso de webhooks.
+- 🔐 **[Variables de Entorno](docs/ENV_VARS.md)**: Diccionario completo de configuración.
+- ☁️ **[Configuración Cloudinary](docs/CLOUDINARY_SETUP.md)**: Guía para gestión de archivos.
+- 🕒 **[Configuración Cron](docs/CRON_SETUP.md)**: Tareas programadas.
+- 🛡️ **[Configuración Sentry](docs/SENTRY_SETUP.md)**: Monitoreo de errores.
 
 ## Contribuir
 
 Si deseas contribuir al proyecto, por favor lee nuestra [Guía de Contribución](CONTRIBUTING.md).
 
 ---
+
 © 2025 Multicomputos S.R.L. - Todos los derechos reservados.

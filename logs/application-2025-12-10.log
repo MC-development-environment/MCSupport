@@ -1,7 +1,0 @@
-{"level":"warn","message":"SMTP credentials not found. Falling back to mock email service.","timestamp":"2025-12-11T00:37:50.424Z"}
-{"level":"warn","message":"SMTP credentials not found. Falling back to mock email service.","timestamp":"2025-12-11T02:41:45.806Z"}
-{"level":"warn","message":"SMTP credentials not found. Falling back to mock email service.","timestamp":"2025-12-11T03:58:18.224Z"}
-{"level":"info","message":"[Assistant] Updated priority for CN-1765425498 to HIGH (Sentiment: NEGATIVE)","timestamp":"2025-12-11T03:58:18.279Z"}
-{"level":"warn","message":"SMTP credentials not found. Falling back to mock email service.","timestamp":"2025-12-11T03:58:18.290Z"}
-{"level":"info","message":"[Assistant] Sent escalation alert for CN-1765425498","timestamp":"2025-12-11T03:58:18.298Z"}
-{"level":"info","message":"[Assistant] Processed ticket CN-1765425498 with actions.","timestamp":"2025-12-11T03:58:18.344Z"}

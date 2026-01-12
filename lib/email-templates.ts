@@ -165,6 +165,38 @@ const emailTranslations = {
       body2: "Para responder a este mensaje, accede al portal de soporte.",
       button: "Responder",
     },
+    vacation: {
+      activatedTitle: "🏝️ Modo Vacaciones Activado",
+      greeting: "Hola",
+      activatedBody: "Tu modo vacaciones ha sido activado correctamente.",
+      fromLabel: "📅 Desde:",
+      untilLabel: "📅 Hasta:",
+      ticketsReassigned: "📋 Tickets reasignados:",
+      reassignedTo: "👤 Reasignados a:",
+      enjoyVacation:
+        "¡Disfruta tus vacaciones! Tus tickets están en buenas manos.",
+      rights: "Todos los derechos reservados.",
+      reassignmentTitle: "📋 Tickets Reasignados por Vacaciones",
+      reassignmentBody: "ha activado su modo vacaciones y te ha reasignado",
+      tickets: "ticket(s)",
+      vacationPeriod: "⏰ Periodo de vacaciones:",
+      messageLabel: "💬 Mensaje:",
+      ticketsToHandle: "Tickets a atender:",
+      ticketColumn: "Ticket",
+      subjectColumn: "Asunto",
+      priorityColumn: "Prioridad",
+      viewTickets: "Ver Tickets",
+      clientNotificationTitle: "ℹ️ Actualización de tu Ticket",
+      clientNotificationBody:
+        "Te informamos que tu ticket ha sido reasignado a otro miembro de nuestro equipo.",
+      ticketLabel: "Ticket:",
+      subjectLabel: "Asunto:",
+      newResponsible: "Nuevo responsable:",
+      reason: "Motivo:",
+      continuedPriority:
+        "Tu caso sigue siendo nuestra prioridad y continuará siendo atendido sin interrupciones.",
+      viewMyTicket: "Ver mi Ticket",
+    },
   },
   en: {
     welcome: {
@@ -254,6 +286,37 @@ const emailTranslations = {
       fromLabel: "From:",
       body2: "To reply to this message, access the support portal.",
       button: "Reply",
+    },
+    vacation: {
+      activatedTitle: "🏝️ Vacation Mode Activated",
+      greeting: "Hello",
+      activatedBody: "Your vacation mode has been activated successfully.",
+      fromLabel: "📅 From:",
+      untilLabel: "📅 Until:",
+      ticketsReassigned: "📋 Tickets reassigned:",
+      reassignedTo: "👤 Reassigned to:",
+      enjoyVacation: "Enjoy your vacation! Your tickets are in good hands.",
+      rights: "All rights reserved.",
+      reassignmentTitle: "📋 Tickets Reassigned Due to Vacation",
+      reassignmentBody: "has activated vacation mode and reassigned",
+      tickets: "ticket(s)",
+      vacationPeriod: "⏰ Vacation period:",
+      messageLabel: "💬 Message:",
+      ticketsToHandle: "Tickets to handle:",
+      ticketColumn: "Ticket",
+      subjectColumn: "Subject",
+      priorityColumn: "Priority",
+      viewTickets: "View Tickets",
+      clientNotificationTitle: "ℹ️ Update on your Ticket",
+      clientNotificationBody:
+        "We inform you that your ticket has been reassigned to another member of our team.",
+      ticketLabel: "Ticket:",
+      subjectLabel: "Subject:",
+      newResponsible: "New responsible:",
+      reason: "Reason:",
+      continuedPriority:
+        "Your case remains our priority and will continue to be handled without interruptions.",
+      viewMyTicket: "View my Ticket",
     },
   },
 };
@@ -613,6 +676,217 @@ export const newMessageEmail = (
         </div>
         <div style="${emailStyles.footer}">
             <p>&copy; ${new Date().getFullYear()} Multicomputos. ${rights}</p>
+        </div>
+    </div>
+`;
+};
+
+/**
+ * Email de confirmación de vacaciones activadas
+ */
+export const vacationActivatedEmail = (
+  userName: string,
+  startDate: Date,
+  endDate: Date,
+  reassignedCount: number,
+  reassignedTo?: string,
+  lang: EmailLanguage = "es"
+) => {
+  const t = emailTranslations[lang].vacation;
+  const formatDate = (d: Date) =>
+    d.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+  return `
+    <div style="${emailStyles.container}">
+        <div style="${emailStyles.header}">
+            <h1 style="${emailStyles.headerText}">${t.activatedTitle}</h1>
+        </div>
+        <div style="${emailStyles.body}">
+            <p>${t.greeting} <strong>${userName}</strong>,</p>
+            <p>${t.activatedBody}</p>
+            <div style="background-color: #f1f5f9; padding: 16px; border-radius: 6px; margin: 16px 0;">
+                <p style="margin: 0 0 8px 0;"><strong>${
+                  t.fromLabel
+                }</strong> ${formatDate(startDate)}</p>
+                <p style="margin: 0;"><strong>${
+                  t.untilLabel
+                }</strong> ${formatDate(endDate)}</p>
+            </div>
+            ${
+              reassignedCount > 0
+                ? `
+            <div style="background-color: #dbeafe; padding: 16px; border-radius: 6px; margin: 16px 0;">
+                <p style="margin: 0 0 8px 0;"><strong>${
+                  t.ticketsReassigned
+                }</strong> ${reassignedCount}</p>
+                ${
+                  reassignedTo
+                    ? `<p style="margin: 0;"><strong>${t.reassignedTo}</strong> ${reassignedTo}</p>`
+                    : ""
+                }
+            </div>`
+                : ""
+            }
+            <p>${t.enjoyVacation}</p>
+        </div>
+        <div style="${emailStyles.footer}">
+            <p>&copy; ${new Date().getFullYear()} Multicomputos. ${t.rights}</p>
+        </div>
+    </div>
+`;
+};
+
+/**
+ * Email para el receptor de tickets reasignados por vacaciones
+ */
+export const vacationReassignmentEmail = (
+  receiverName: string,
+  vacationUserName: string,
+  tickets: Array<{ number: string; title: string; priority: string }>,
+  startDate: Date,
+  endDate: Date,
+  vacationMessage?: string | null,
+  lang: EmailLanguage = "es"
+) => {
+  const t = emailTranslations[lang].vacation;
+  const formatDate = (d: Date) =>
+    d.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+  const ticketRows = tickets
+    .map(
+      (ticket) => `
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">#${ticket.number}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${ticket.title}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${ticket.priority}</td>
+        </tr>
+    `
+    )
+    .join("");
+
+  return `
+    <div style="${emailStyles.container}">
+        <div style="${emailStyles.header}">
+            <h1 style="${emailStyles.headerText}">${t.reassignmentTitle}</h1>
+        </div>
+        <div style="${emailStyles.body}">
+            <p>${t.greeting} <strong>${receiverName}</strong>,</p>
+            <p><strong>${vacationUserName}</strong> ${t.reassignmentBody} ${
+    tickets.length
+  } ${t.tickets}.</p>
+            
+            <div style="background-color: #fef3c7; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #f59e0b;">
+                <p style="margin: 0;"><strong>${
+                  t.vacationPeriod
+                }</strong> ${formatDate(startDate)} - ${formatDate(endDate)}</p>
+                ${
+                  vacationMessage
+                    ? `<p style="margin: 8px 0 0 0;"><strong>${t.messageLabel}</strong> ${vacationMessage}</p>`
+                    : ""
+                }
+            </div>
+
+            <h3 style="margin-top: 24px;">${t.ticketsToHandle}</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <thead>
+                    <tr style="background-color: #f1f5f9;">
+                        <th style="padding: 12px 8px; text-align: left;">${
+                          t.ticketColumn
+                        }</th>
+                        <th style="padding: 12px 8px; text-align: left;">${
+                          t.subjectColumn
+                        }</th>
+                        <th style="padding: 12px 8px; text-align: left;">${
+                          t.priorityColumn
+                        }</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${ticketRows}
+                </tbody>
+            </table>
+
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="${BASE_URL}/admin/tickets" style="${
+    emailStyles.button
+  }">${t.viewTickets}</a>
+            </div>
+        </div>
+        <div style="${emailStyles.footer}">
+            <p>&copy; ${new Date().getFullYear()} Multicomputos. ${t.rights}</p>
+        </div>
+    </div>
+`;
+};
+
+/**
+ * Email para notificar a clientes sobre reasignación por vacaciones
+ */
+export const vacationClientNotificationEmail = (
+  clientName: string,
+  ticketNumber: string,
+  ticketTitle: string,
+  newAssigneeName: string,
+  vacationMessage?: string | null,
+  ticketUrl?: string,
+  lang: EmailLanguage = "es"
+) => {
+  const t = emailTranslations[lang].vacation;
+  return `
+    <div style="${emailStyles.container}">
+        <div style="${emailStyles.header}">
+            <h1 style="${emailStyles.headerText}">${
+    t.clientNotificationTitle
+  }</h1>
+        </div>
+        <div style="${emailStyles.body}">
+            <p>${t.greeting} <strong>${clientName}</strong>,</p>
+            <p>${t.clientNotificationBody}</p>
+            
+            <div style="background-color: #f1f5f9; padding: 16px; border-radius: 6px; margin: 16px 0;">
+                <p style="margin: 0 0 8px 0;"><strong>${
+                  t.ticketLabel
+                }</strong> #${ticketNumber}</p>
+                <p style="margin: 0 0 8px 0;"><strong>${
+                  t.subjectLabel
+                }</strong> ${ticketTitle}</p>
+                <p style="margin: 0;"><strong>${
+                  t.newResponsible
+                }</strong> ${newAssigneeName}</p>
+            </div>
+
+            ${
+              vacationMessage
+                ? `
+            <div style="background-color: #e0f2fe; padding: 16px; border-radius: 6px; margin: 16px 0;">
+                <p style="margin: 0;"><strong>${t.reason}</strong> ${vacationMessage}</p>
+            </div>`
+                : ""
+            }
+
+            <p>${t.continuedPriority}</p>
+
+            ${
+              ticketUrl
+                ? `
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="${ticketUrl}" style="${emailStyles.button}">${t.viewMyTicket}</a>
+            </div>`
+                : ""
+            }
+        </div>
+        <div style="${emailStyles.footer}">
+            <p>&copy; ${new Date().getFullYear()} Multicomputos. ${t.rights}</p>
         </div>
     </div>
 `;

@@ -18,6 +18,8 @@ import {
   getCategoryLabel,
   getDepartmentLabel,
 } from "./messages";
+import { sendEmail, BASE_URL } from "@/lib/email-service";
+import { assignedEmail } from "@/lib/email-templates";
 
 /**
  * Encuentra el departamento apropiado para una categoría
@@ -43,6 +45,7 @@ export async function findServiceOfficer(): Promise<{
       where: {
         role: "SERVICE_OFFICER",
         email: { not: ASSISTANT_EMAIL }, // Excluir al asistente virtual
+        isOnVacation: false, // Excluir usuarios de vacaciones
       },
       select: {
         id: true,
@@ -175,6 +178,7 @@ export async function findAvailableAgent(
         departmentId: department.id,
         role: { in: roleHierarchy },
         email: { not: ASSISTANT_EMAIL },
+        isOnVacation: false, // Excluir usuarios de vacaciones
       },
       include: {
         skills: {
@@ -424,6 +428,28 @@ async function assignToAgent(
     method: "auto-assignment",
     category: category,
   });
+
+  // Notificar al Agente Asignado
+  if (agentEmail) {
+    // Obtener número de ticket para el correo
+    const ticket = await prisma.case.findUnique({
+      where: { id: ticketId },
+      select: { ticketNumber: true, title: true },
+    });
+
+    if (ticket) {
+      await sendEmail({
+        to: agentEmail,
+        subject: `Ticket Asignado (Auto) #${ticket.ticketNumber}`,
+        body: assignedEmail(
+          ticket.ticketNumber,
+          ticket.title,
+          `${BASE_URL}/admin/tickets/${ticketId}`
+        ),
+      });
+      logger.info(`[LAU] Sent assignment email to ${agentEmail}`);
+    }
+  }
 }
 
 /**

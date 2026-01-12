@@ -8,7 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { submitSurvey } from "@/actions/portal-ticket-actions";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { translateError } from "@/lib/error-codes";
 
 interface Props {
   ticketId: string;
@@ -16,6 +23,7 @@ interface Props {
 
 export function TicketSurvey({ ticketId }: Props) {
   const t = useTranslations("Portal.Survey");
+  const tCommon = useTranslations("Common");
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -41,7 +49,7 @@ export function TicketSurvey({ ticketId }: Props) {
         toast.success(t("successMessage"));
         router.refresh();
       } else {
-        toast.error(result.error || t("errorMessage"));
+        toast.error(translateError(result.error, tCommon));
       }
     });
   }
@@ -55,9 +63,15 @@ export function TicketSurvey({ ticketId }: Props) {
               <Star className="h-8 w-8 text-green-600 dark:text-green-400 fill-current" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-green-700 dark:text-green-400">{t("thankYou")}</h2>
+          <h2 className="text-2xl font-bold text-green-700 dark:text-green-400">
+            {t("thankYou")}
+          </h2>
           <p className="text-muted-foreground">{t("feedbackReceived")}</p>
-          <Button onClick={() => router.push("/portal/tickets")} variant="outline" className="mt-4">
+          <Button
+            onClick={() => router.push("/portal/tickets")}
+            variant="outline"
+            className="mt-4"
+          >
             {t("backToTickets")}
           </Button>
         </CardContent>
@@ -95,11 +109,11 @@ export function TicketSurvey({ ticketId }: Props) {
         <div className="text-center text-sm font-medium text-muted-foreground min-h-[20px]">
           {hoverRating > 0 || rating > 0 ? (
             <span>
-                {(hoverRating || rating) === 1 && t("rating1")}
-                {(hoverRating || rating) === 2 && t("rating2")}
-                {(hoverRating || rating) === 3 && t("rating3")}
-                {(hoverRating || rating) === 4 && t("rating4")}
-                {(hoverRating || rating) === 5 && t("rating5")}
+              {(hoverRating || rating) === 1 && t("rating1")}
+              {(hoverRating || rating) === 2 && t("rating2")}
+              {(hoverRating || rating) === 3 && t("rating3")}
+              {(hoverRating || rating) === 4 && t("rating4")}
+              {(hoverRating || rating) === 5 && t("rating5")}
             </span>
           ) : null}
         </div>
@@ -115,11 +129,11 @@ export function TicketSurvey({ ticketId }: Props) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button 
-            className="w-full" 
-            onClick={handleSubmit} 
-            disabled={isPending || rating === 0}
-            size="lg"
+        <Button
+          className="w-full"
+          onClick={handleSubmit}
+          disabled={isPending || rating === 0}
+          size="lg"
         >
           {isPending ? t("submitting") : t("submit")}
         </Button>

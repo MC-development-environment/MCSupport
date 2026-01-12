@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { ErrorCodes } from "@/lib/error-codes";
 
 export async function createArticle(formData: FormData) {
   const session = await auth();
   if (!session?.user?.email || !session.user.id)
-    throw new Error("Unauthorized");
+    throw new Error(ErrorCodes.UNAUTHORIZED);
 
   // Validar que el usuario exista en la BD para evitar error de FK
   const dbUser = await prisma.user.findUnique({
@@ -16,9 +17,14 @@ export async function createArticle(formData: FormData) {
   });
 
   if (!dbUser) {
-    throw new Error(
-      "Usuario no encontrado. Su sesión puede haber expirado. Por favor inicie sesión nuevamente."
-    );
+    // Usar código de error para traducción en cliente
+    throw new Error(ErrorCodes.SESSION_EXPIRED);
+  }
+
+  // Validar vacaciones
+  const { isUserOnVacation } = await import("./vacation-actions");
+  if (await isUserOnVacation(session.user.id)) {
+    throw new Error(ErrorCodes.ACTION_BLOCKED_VACATION);
   }
 
   const title = formData.get("title") as string;
@@ -41,7 +47,6 @@ export async function createArticle(formData: FormData) {
       content,
       categoryId,
       isPublished,
-      // @ts-ignore
       isInternal,
       slug,
       authorId: session.user.id,
@@ -72,6 +77,12 @@ export async function updateArticle(articleId: string, formData: FormData) {
   if (!session?.user?.email || !session.user.id)
     throw new Error("Unauthorized");
 
+  // Validar vacaciones
+  const { isUserOnVacation } = await import("./vacation-actions");
+  if (await isUserOnVacation(session.user.id)) {
+    throw new Error(ErrorCodes.ACTION_BLOCKED_VACATION);
+  }
+
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const categoryId = formData.get("categoryId") as string;
@@ -91,7 +102,6 @@ export async function updateArticle(articleId: string, formData: FormData) {
       content,
       categoryId,
       isPublished,
-      // @ts-ignore
       isInternal,
     },
   });

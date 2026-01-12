@@ -107,4 +107,4 @@ Para proteger su cuenta, puede activar la **Autenticación de Dos Factores**:
 
 - _Nota: Esto añada una capa extra de seguridad al login._
 
-_© 2025 Multicomputos Support Team_
+_© 2025 Multicomputos Application Team_

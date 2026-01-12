@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { hash, compare } from "bcryptjs";
 import { z } from "zod";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limiter";
+import { ErrorCodes } from "@/lib/error-codes";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function authenticate(values: any) {
@@ -44,9 +45,17 @@ export async function authenticate(values: any) {
       code: values.code,
       redirect: false,
     });
+
     // Reiniciar límite de tasa en inicio de sesión exitoso
     resetRateLimit(values.email, "auth");
-    return { success: true };
+
+    // Fetch user role for redirection
+    const user = await prisma.user.findUnique({
+      where: { email: values.email },
+      select: { role: true },
+    });
+
+    return { success: true, role: user?.role };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -76,7 +85,7 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
   const validatedFields = RegisterSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Campos inválidos" };
+    return { error: ErrorCodes.INVALID_DATA };
   }
 
   const { email, password, name } = validatedFields.data;
@@ -101,7 +110,7 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
   });
 
   if (existingUser) {
-    return { error: "El correo ya está registrado" };
+    return { error: ErrorCodes.EMAIL_EXISTS };
   }
 
   const hashedPassword = await hash(password, 10);

@@ -1,58 +1,61 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "../globals.css";
-import { NextIntlClientProvider } from 'next-intl';
-import { getTranslations, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from "next-intl";
+import { getTranslations, getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import NextTopLoader from 'nextjs-toploader';
+import NextTopLoader from "nextjs-toploader";
 import { AuthProvider } from "@/components/auth-provider";
+import { ServiceWorkerKiller } from "@/components/dev/service-worker-killer";
 
 const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export async function generateMetadata({
-  params
+  params,
 }: {
-  params: Promise<{ locale: string }>
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Metadata' });
+  const t = await getTranslations({ locale, namespace: "Metadata" });
 
   return {
-    metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
+    metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
     title: {
-      template: `%s | ${t('appTitle')}`,
-      default: t('appTitle'),
+      template: `%s | ${t("appTitle")}`,
+      default: t("appTitle"),
     },
-    description: t('appDescription'),
+    description: t("appDescription"),
     openGraph: {
-      title: t('appTitle'),
-      description: t('appDescription'),
-      url: 'https://mcsupport.com', // Replace with actual URL
-      siteName: 'MC Support System',
+      title: t("appTitle"),
+      description: t("appDescription"),
+      url: "https://mcsupport.com", // Replace with actual URL
+      siteName: "MC Support System",
       images: [
         {
-          url: '/og-image.png', // Ensure this exists or use a placeholder
+          url: "/og-image.png", // Ensure this exists or use a placeholder
           width: 800,
           height: 600,
         },
       ],
       locale: locale,
-      type: 'website',
+      type: "website",
     },
 
     icons: {
-      icon: '/icon.png',
-      shortcut: '/icon.png',
-      apple: '/icon.png',
+      icon: "/icon.png",
+      shortcut: "/icon.png",
+      apple: "/icon.png",
     },
     formatDetection: {
       telephone: false,
@@ -60,7 +63,7 @@ export async function generateMetadata({
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
-      title: t('appTitle'),
+      title: t("appTitle"),
     },
   };
 }
@@ -92,6 +95,7 @@ export default async function LocaleLayout({
         suppressHydrationWarning
       >
         <NextTopLoader color="#f97316" showSpinner={false} />
+        {process.env.NODE_ENV === "development" && <ServiceWorkerKiller />}
         <AuthProvider>
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider

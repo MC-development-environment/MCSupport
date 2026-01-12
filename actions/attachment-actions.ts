@@ -4,15 +4,23 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { ErrorCodes } from "@/lib/error-codes";
 
 export async function uploadAttachment(formData: FormData) {
   const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
+  if (!session?.user?.id) return { error: ErrorCodes.UNAUTHORIZED };
+
+  // Check vacation
+  const { isUserOnVacation } = await import("./vacation-actions");
+  const onVacation = await isUserOnVacation(session.user.id);
+  if (onVacation) {
+    return { error: ErrorCodes.ACTION_BLOCKED_VACATION };
+  }
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
   });
-  if (!dbUser) return { error: "Usuario no inválido. Reinicie sesión." };
+  if (!dbUser) return { error: ErrorCodes.SESSION_EXPIRED };
 
   const file = formData.get("file") as File;
   const ticketId = formData.get("ticketId") as string;
@@ -23,7 +31,7 @@ export async function uploadAttachment(formData: FormData) {
   if (file.size > 10 * 1024 * 1024) return { error: "Archivo excede 10MB" };
 
   const count = await prisma.attachment.count({ where: { ticketId } });
-  if (count >= 10) return { error: "Límite de 10 archivos alcanzado." };
+  if (count >= 10) return { error: ErrorCodes.FILE_LIMIT_REACHED };
 
   try {
     const bytes = await file.arrayBuffer();

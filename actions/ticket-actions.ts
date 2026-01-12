@@ -9,11 +9,20 @@ import { logger } from "@/lib/logger";
 import { statusChangeEmail, assignedEmail } from "@/lib/email-templates";
 
 import { logActivity, AuditAction, AuditEntity } from "@/lib/audit-service";
+import { ErrorCodes } from "@/lib/error-codes";
 import { z } from "zod";
 import { CaseStatus, Priority } from "@prisma/client";
 
 export async function updateTicketStatus(ticketId: string, newStatus: string) {
-  await auth(); // Verificar autorización
+  const session = await auth(); // Verificar autorización
+
+  if (session?.user?.id) {
+    const { isUserOnVacation } = await import("./vacation-actions");
+    const onVacation = await isUserOnVacation(session.user.id);
+    if (onVacation) {
+      return { success: false, error: ErrorCodes.ACTION_BLOCKED_VACATION };
+    }
+  }
 
   try {
     const ticket = await prisma.case.findUnique({
@@ -21,7 +30,7 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
       include: { user: true },
     });
 
-    if (!ticket) return { success: false, error: "Ticket no encontrado" };
+    if (!ticket) return { success: false, error: ErrorCodes.TICKET_NOT_FOUND };
 
     const oldStatus = ticket.status;
 
@@ -60,7 +69,7 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
     const parsedStatus = statusSchema.safeParse(newStatus);
 
     if (!parsedStatus.success) {
-      return { success: false, error: "Estado inválido" };
+      return { success: false, error: ErrorCodes.INVALID_STATUS };
     }
 
     await prisma.case.update({
@@ -88,6 +97,31 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
     revalidatePath(`/admin/tickets/${ticketId}`);
     revalidatePath(`/admin/tickets`);
     revalidatePath(`/admin`);
+
+    // Notificar al Asignado si se REABRE el caso (Fix Item 10)
+    // Estado anterior: RESOLVED o CLOSED -> Nuevo: OPEN o IN_PROGRESS
+    const isReopen =
+      ["RESOLVED", "CLOSED"].includes(oldStatus) &&
+      ["OPEN", "IN_PROGRESS"].includes(newStatus);
+
+    if (isReopen && ticket.assignedToId) {
+      const assignee = await prisma.user.findUnique({
+        where: { id: ticket.assignedToId },
+        select: { email: true },
+      });
+
+      if (assignee?.email) {
+        const { assignedEmail } = await import("@/lib/email-templates"); // Reuse assigned template or create specific one
+        await sendEmail({
+          to: assignee.email,
+          subject: `Ticket Reabierto #${ticket.ticketNumber}`,
+          body: `El ticket #${ticket.ticketNumber} ha sido reabierto y marcado como ${newStatus}.\n\nVer: ${BASE_URL}/admin/tickets/${ticketId}`,
+        });
+        logger.info(
+          `[Ticket] Sent reopen notification to assignee ${assignee.email}`
+        );
+      }
+    }
 
     // Notificar al Cliente con CC
     const { getTicketRecipients } = await import("@/lib/ticket-helpers");
@@ -148,10 +182,21 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
 
         const targetLeader = teamLead || techLead || serviceOfficer;
 
-        if (targetLeader?.email) {
+        let leaderEmail = targetLeader?.email;
+
+        // Fallback: Si no hay líderes en el departamento, buscar Oficial de Servicio General
+        if (!leaderEmail) {
+          const globalServiceOfficer = await prisma.user.findFirst({
+            where: { role: "SERVICE_OFFICER" },
+            select: { email: true },
+          });
+          leaderEmail = globalServiceOfficer?.email;
+        }
+
+        if (leaderEmail) {
           const { statusChangeEmail } = await import("@/lib/email-templates"); // Reusing status template or create new one
           await sendEmail({
-            to: targetLeader.email,
+            to: leaderEmail,
             subject: `[Supervisión] Ticket Cerrado #${ticket.ticketNumber}`,
             body: `El ticket #${ticket.ticketNumber} ha sido CERRADO por ${
               assignedUser.email || "el sistema"
@@ -191,26 +236,46 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
     return { success: true };
   } catch (error) {
     logger.error("Failed to update ticket status", { error });
-    return { success: false, error: "Error al actualizar el estado" };
+    return { success: false, error: ErrorCodes.UPDATE_STATUS_FAILED };
   }
 }
 
 export async function assignTicket(ticketId: string, assigneeId: string) {
-  await auth(); // Verificar autorización
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: ErrorCodes.UNAUTHORIZED };
+  }
+
+  const { isUserOnVacation } = await import("./vacation-actions");
+  const onVacation = await isUserOnVacation(session.user.id);
+  if (onVacation) {
+    return { success: false, error: ErrorCodes.ACTION_BLOCKED_VACATION };
+  }
 
   try {
     const assignee = await prisma.user.findUnique({
       where: { id: assigneeId },
+      select: { id: true, email: true, name: true, isOnVacation: true },
     });
-    if (!assignee) return { success: false, error: "Usuario no encontrado" };
+    if (!assignee) return { success: false, error: ErrorCodes.USER_NOT_FOUND };
 
+    // Validar que el usuario no esté de vacaciones
+    if (assignee.isOnVacation) {
+      return { success: false, error: ErrorCodes.USER_ON_VACATION };
+    }
+
+    // Actualizar ticket con nuevo asignado Y quién lo asignó
     const ticket = await prisma.case.update({
       where: { id: ticketId },
-      data: { assignedToId: assigneeId },
+      data: {
+        assignedToId: assigneeId,
+        assignedById: session.user.id, // Guardar quién realizó la asignación
+      },
     });
 
     await logActivity(AuditAction.ASSIGN, AuditEntity.TICKET, ticketId, {
       assignedTo: assignee.email,
+      assignedBy: session.user.email || session.user.id,
     });
 
     // Notificar al Asignado
@@ -232,7 +297,7 @@ export async function assignTicket(ticketId: string, assigneeId: string) {
     return { success: true };
   } catch (error) {
     logger.error("Failed to assign ticket", { error });
-    return { success: false, error: "Error al asignar el ticket" };
+    return { success: false, error: ErrorCodes.ASSIGN_FAILED };
   }
 }
 
@@ -267,17 +332,26 @@ export async function addMessage(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "No autorizado" };
+    return { success: false, error: ErrorCodes.UNAUTHORIZED };
+  }
+
+  // Comprobar vacaciones para usuarios internos
+  if (session.user.role !== "CLIENT") {
+    const { isUserOnVacation } = await import("./vacation-actions");
+    const onVacation = await isUserOnVacation(session.user.id);
+    if (onVacation) {
+      return { success: false, error: ErrorCodes.ACTION_BLOCKED_VACATION };
+    }
   }
 
   // Prevent clients from creating internal notes
   const userRole = session.user.role;
   if (userRole === "CLIENT" && isInternal) {
-    return { success: false, error: "Clientes no pueden crear notas internas" };
+    return { success: false, error: ErrorCodes.NO_INTERNAL_NOTES };
   }
 
   if (!content.trim()) {
-    return { success: false, error: "El contenido no puede estar vacío" };
+    return { success: false, error: ErrorCodes.CONTENT_EMPTY };
   }
 
   try {
@@ -288,7 +362,7 @@ export async function addMessage(
     });
 
     if (!ticket) {
-      return { success: false, error: "Ticket no encontrado" };
+      return { success: false, error: ErrorCodes.TICKET_NOT_FOUND };
     }
 
     // Crear el mensaje
@@ -325,7 +399,6 @@ export async function addMessage(
       const config = await prisma.systemConfig.findFirst();
 
       // Notificar al COLABORADOR ASIGNADO (Priority) or Support Email (Fallback)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const assigneeEmail = (ticket as any).assignedTo?.email;
       const targetEmail =
         assigneeEmail || config?.supportEmail || "support@multicomputos.com";
@@ -345,17 +418,30 @@ export async function addMessage(
       );
     } else if (isClient) {
       // Notification for normal reply (not reopening)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const assigneeEmail = (ticket as any).assignedTo?.email;
+      // Fix Item 8: Assignee not receiving email
+      const assigneeEmail = ticket.assignedTo?.email;
+
       if (assigneeEmail) {
         const { newMessageEmail } = await import("@/lib/email-templates");
         // Use Spanish as default for internal notifications or detect language
         await sendEmail({
           to: assigneeEmail,
           subject: `Nuevo mensaje del cliente - Ticket #${ticket.ticketNumber}`,
-          // Using a simple body or reusing a template. Reusing simple format for internal.
-          body: `El cliente ha enviado un nuevo mensaje al ticket #${ticket.ticketNumber}.\n\n"${content}"\n\nVer: ${BASE_URL}/admin/tickets/${ticketId}`,
+          body: newMessageEmail(
+            ticket.ticketNumber,
+            "Cliente", // Remitente es el cliente
+            content,
+            `${BASE_URL}/admin/tickets/${ticketId}`,
+            "es" // Internal emails in Spanish
+          ),
         });
+        logger.info(
+          `[Ticket] Sent client reply notification to assignee ${assigneeEmail}`
+        );
+      } else {
+        logger.warn(
+          `[Ticket] Client replied but no assignee found to notify for ticket ${ticket.ticketNumber}`
+        );
       }
     }
 
@@ -431,7 +517,7 @@ export async function addMessage(
     return { success: true };
   } catch (error) {
     console.error("Failed to add message", error);
-    return { success: false, error: "Error al enviar el mensaje" };
+    return { success: false, error: ErrorCodes.SEND_MESSAGE_FAILED };
   }
 }
 
@@ -443,7 +529,13 @@ export async function updateTicketCategory(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { success: false, error: "No autorizado" };
+      return { success: false, error: ErrorCodes.UNAUTHORIZED };
+    }
+
+    const { isUserOnVacation } = await import("./vacation-actions");
+    const onVacation = await isUserOnVacation(session.user.id);
+    if (onVacation) {
+      return { success: false, error: ErrorCodes.ACTION_BLOCKED_VACATION };
     }
 
     // Verificar permisos (solo MANAGER y TEAM_LEAD pueden editar categoría)
@@ -453,7 +545,7 @@ export async function updateTicketCategory(
     });
 
     if (!user || !["MANAGER", "TEAM_LEAD"].includes(user.role)) {
-      return { success: false, error: "Sin permisos para editar categoría" };
+      return { success: false, error: ErrorCodes.NO_CATEGORY_PERMISSION };
     }
 
     const oldTicket = await prisma.case.findUnique({
@@ -476,7 +568,7 @@ export async function updateTicketCategory(
     return { success: true };
   } catch (error) {
     logger.error("Failed to update category", error);
-    return { success: false, error: "Error al actualizar categoría" };
+    return { success: false, error: ErrorCodes.UPDATE_CATEGORY_FAILED };
   }
 }
 
@@ -489,7 +581,7 @@ export async function reopenTicket(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { success: false, error: "No autorizado" };
+      return { success: false, error: ErrorCodes.UNAUTHORIZED };
     }
 
     // Verificar permisos
@@ -504,7 +596,7 @@ export async function reopenTicket(
         user.role
       )
     ) {
-      return { success: false, error: "Sin permisos para reabrir casos" };
+      return { success: false, error: ErrorCodes.NO_REOPEN_PERMISSION };
     }
 
     const newAssignee = await prisma.user.findUnique({
@@ -513,7 +605,7 @@ export async function reopenTicket(
     });
 
     if (!newAssignee) {
-      return { success: false, error: "Usuario no encontrado" };
+      return { success: false, error: ErrorCodes.USER_NOT_FOUND };
     }
 
     const ticket = await prisma.case.update({
@@ -564,7 +656,7 @@ export async function reopenTicket(
     return { success: true };
   } catch (error) {
     logger.error("Failed to reopen ticket", error);
-    return { success: false, error: "Error al reabrir el caso" };
+    return { success: false, error: ErrorCodes.REOPEN_FAILED };
   }
 }
 
@@ -576,7 +668,7 @@ export async function updateTicketPriority(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { success: false, error: "No autorizado" };
+      return { success: false, error: ErrorCodes.UNAUTHORIZED };
     }
 
     // Verificar permisos
@@ -586,7 +678,7 @@ export async function updateTicketPriority(
     });
 
     if (!user || !["MANAGER", "TEAM_LEAD"].includes(user.role)) {
-      return { success: false, error: "Sin permisos para cambiar prioridad" };
+      return { success: false, error: ErrorCodes.NO_PRIORITY_PERMISSION };
     }
 
     const oldTicket = await prisma.case.findUnique({
@@ -629,7 +721,7 @@ export async function updateTicketPriority(
     const parsedPriority = prioritySchema.safeParse(newPriority);
 
     if (!parsedPriority.success) {
-      return { success: false, error: "Prioridad inválida" };
+      return { success: false, error: ErrorCodes.INVALID_PRIORITY };
     }
 
     await prisma.case.update({
@@ -650,7 +742,7 @@ export async function updateTicketPriority(
     return { success: true };
   } catch (error) {
     logger.error("Failed to update priority", error);
-    return { success: false, error: "Error al actualizar prioridad" };
+    return { success: false, error: ErrorCodes.UPDATE_PRIORITY_FAILED };
   }
 }
 
@@ -659,7 +751,7 @@ export async function updateTicketPriority(
 export async function getDepartmentsWithUsers() {
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "No autorizado" };
+    return { success: false, error: ErrorCodes.UNAUTHORIZED };
   }
 
   const userRole = session.user.role;
@@ -694,6 +786,6 @@ export async function getDepartmentsWithUsers() {
     return { success: true, departments };
   } catch (error) {
     logger.error("Failed to get departments", error);
-    return { success: false, error: "Error al obtener departamentos" };
+    return { success: false, error: ErrorCodes.GET_DEPARTMENTS_FAILED };
   }
 }

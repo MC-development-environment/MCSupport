@@ -67,16 +67,23 @@ model User {
   // 🏷️ Skills for smart ticket assignment
   skills UserSkill[]
 
+  // 🏝️ Estado de Vacaciones
+  isOnVacation      Boolean   @default(false)
+  vacationStartDate DateTime?
+  vacationEndDate   DateTime?
+  vacationMessage   String? // Mensaje personalizado de ausencia
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cases         Case[]
-  assignedCases Case[]       @relation("AssignedCases")
-  articles      Article[]
-  auditLogs     AuditLog[]
-  uploads       Attachment[]
-  messages      Message[]
-  surveysReceived Survey[] @relation("SurveyResolver")
+  cases           Case[]
+  assignedCases   Case[]       @relation("AssignedCases")
+  articles        Article[]
+  auditLogs       AuditLog[]
+  uploads         Attachment[]
+  messages        Message[]
+  surveysReceived Survey[]     @relation("SurveyResolver")
+  assignedByCases Case[]       @relation("AssignedByCases") // Casos asignados por este usuario
 }
 
 // 🏷️ Skill Catalog - Predefined skills managed by admins
@@ -185,13 +192,17 @@ model Case {
 
   ccEmails String[] @default([]) // Email addresses for CC notifications
 
-  slaTargetAt DateTime? // SLA Deadline calculated based on priority and business hours
-  slaPausedAt DateTime? // When the ticket was put into a paused status (e.g. WAITING_CUSTOMER)
-  totalPausedMinutes Int @default(0) // Total accumulated minutes paused
+  // Información de asignación
+  assignedById String?
+  assignedBy   User?   @relation("AssignedByCases", fields: [assignedById], references: [id])
+
+  slaTargetAt        DateTime? // SLA Deadline calculated based on priority and business hours
+  slaPausedAt        DateTime? // When the ticket was put into a paused status (e.g. WAITING_CUSTOMER)
+  totalPausedMinutes Int       @default(0) // Total accumulated minutes paused
 
   // NetSuite Integration
-  netsuiteId    String?   @unique // Internal ID in NetSuite
-  netsuiteUrl   String?   // Deep link to the record
+  netsuiteId  String? @unique // Internal ID in NetSuite
+  netsuiteUrl String? // Deep link to the record
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,6 +210,10 @@ model Case {
   // Future: Messages
   messages    Message[]
   attachments Attachment[]
+
+  // Survey
+  surveyRequestedAt DateTime?
+  survey            Survey?
 
   // Performance Indexes
   @@index([status])
@@ -208,22 +223,18 @@ model Case {
   @@index([assignedToId])
   @@index([status, createdAt])
   @@index([priority, status])
-
-  // Survey
-  surveyRequestedAt DateTime?
-  survey            Survey?
 }
 
 model Survey {
-  id        String   @id @default(cuid())
-  rating    Int
-  comment   String?
-  ticketId  String   @unique
-  ticket    Case     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  
+  id       String  @id @default(cuid())
+  rating   Int
+  comment  String?
+  ticketId String  @unique
+  ticket   Case    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
   resolvedById String?
   resolvedBy   User?   @relation("SurveyResolver", fields: [resolvedById], references: [id])
-  
+
   createdAt DateTime @default(now())
 }
 

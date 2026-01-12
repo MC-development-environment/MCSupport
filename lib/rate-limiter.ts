@@ -14,12 +14,14 @@ type RateLimitEntry = {
 };
 
 // Configuraciones de límite de tasa
+// IMPORTANTE: Estos límites son críticos para la seguridad en producción
+// Para E2E tests, usar variables de entorno o mocks en lugar de aumentar estos valores
 export const RATE_LIMITS = {
-  auth: { requests: 5, windowMs: 60 * 1000 }, // 5 intentos por minuto
-  register: { requests: 3, windowMs: 60 * 1000 }, // 3 registros por minuto
-  otp: { requests: 3, windowMs: 5 * 60 * 1000 }, // 3 peticiones OTP por 5 minutos
-  ticket: { requests: 10, windowMs: 60 * 1000 }, // 10 tickets por minuto
-  api: { requests: 100, windowMs: 60 * 1000 }, // 100 llamadas API por minuto
+  auth: { requests: 5, windowMs: 60 * 1000 }, // 5 req/min - previene ataques de fuerza bruta
+  register: { requests: 3, windowMs: 60 * 1000 }, // 3 req/min - evita spam de cuentas
+  otp: { requests: 3, windowMs: 5 * 60 * 1000 }, // 3 req/5min - protege códigos OTP
+  ticket: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min - suficiente para uso normal
+  api: { requests: 100, windowMs: 60 * 1000 }, // 100 req/min - balance uso/protección
 } as const;
 
 export type RateLimitType = keyof typeof RATE_LIMITS;

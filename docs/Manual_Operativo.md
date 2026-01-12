@@ -1,6 +1,6 @@
 # Manual Operativo: Administración y Soporte 🛠️
 
-**Versión:** 3.3.0 (Granular)
+**Versión:** 3.0.0
 **Audiencia:** Gerentes, Técnicos y Operativos.
 
 Este manual documenta exhaustivamente cada funcionalidad de la plataforma, validada contra el código fuente.
@@ -220,7 +220,12 @@ Configuración global almacenada en base de datos:
     - Definición de horas por prioridad (Low, Medium, High, Critical).
 6.  **Horario de Trabajo**:
     - Definición de hora inicio/fin y días laborales. Afecta el cálculo de fechas de vencimiento.
+7.  **Modo Vacaciones**:
+    - Permite a los agentes marcar un periodo de ausencia.
+    - **Comportamiento**:
+      - Si la fecha fin es menor que la inicio, se resetea automáticamente.
+      - Los tickets asignados durante este periodo pueden reasignarse automáticamente si se configura.
 
 ---
 
-_Documentación validada técnicamente - Diciembre 2025_
+_Documentación validada técnicamente - Enero 2026_

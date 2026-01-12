@@ -1,7 +1,7 @@
 # Guía Técnica Integral: Arquitectura y Desarrollo 🛠️
 
-**Versión:** 3.3.0 (Forensic Audit + Limits Update)
-**Fecha:** Diciembre 2025
+**Versión:** 3.0.0
+**Fecha:** Enero 2026
 **Proyecto:** MC Support System
 
 Esta guía documenta la totalidad de la arquitectura técnica, decisiones de diseño, modelos de datos y procedimientos de operación de la plataforma.
@@ -21,6 +21,7 @@ La aplicación es un **Monolito Modular** construido sobre tecnologías modernas
 - **Cola de Tareas**: Cron Jobs HTTP (`/api/cron/*`) invocados externamente.
 - **Estilos**: TailwindCSS 4.0 + Shadcn/UI (Radix Primitives).
 - **Gráficos**: Recharts (Librería de visualización basada en D3).
+  - _Nota_: Se incluye `react-is` como dependencia directa para compatibilidad con React 19.
 
 ### 1.2 Estructura de Directorios (Mapa del Código)
 
@@ -38,7 +39,8 @@ La aplicación es un **Monolito Modular** construido sobre tecnologías modernas
 ├── components/               # UI LIBRARY
 │   ├── admin/                # Admin-specific components (Reports, Filters)
 │   │   ├── reports-client.tsx # 📈 Analytics Dashboard Container
-│   │   └── settings-form.tsx # ⚙️ System Config Form
+│   │   ├── settings-form.tsx # ⚙️ System Config Form
+│   │   └── vacation-toggle.tsx # 🌴 Vacation Mode (Pattern: Controlled Popover)
 │   ├── portal/               # Client-specific components
 │   │   └── ticket-form.tsx   # 📝 Client Ticket Form forms logic
 │   └── ui/                   # Shadcn Reusable Atoms

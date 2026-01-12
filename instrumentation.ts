@@ -2,16 +2,10 @@
 export async function register() {
   // Validate environment variables
   await import("./lib/env");
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    await import("./sentry.server.config");
-  }
-
-  if (process.env.NEXT_RUNTIME === "edge") {
-    await import("./sentry.edge.config");
-  }
 }
 
+// onRequestError hook is optional, removing Sentry integration
 export async function onRequestError(err: any, request: any, context: any) {
-  const Sentry = await import("@sentry/nextjs");
-  Sentry.captureException(err);
+  // Error logging logic can be added here if needed, e.g. console.error
+  console.error("Instrumentation error:", err);
 }

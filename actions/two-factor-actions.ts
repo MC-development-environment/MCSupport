@@ -6,6 +6,7 @@ import { TwoFactorService } from "@/lib/two-factor-service";
 import { logActivity, AuditAction, AuditEntity } from "@/lib/audit-service";
 import { revalidatePath } from "next/cache";
 import { compare } from "bcryptjs";
+import { ErrorCodes } from "@/lib/error-codes";
 
 /**
  * Inicia el proceso de habilitación de 2FA
@@ -14,7 +15,7 @@ import { compare } from "bcryptjs";
 export async function initiate2FA() {
   const session = await auth();
   if (!session?.user?.email || !session?.user?.id) {
-    return { error: "No autorizado" };
+    return { error: ErrorCodes.UNAUTHORIZED };
   }
 
   const user = await prisma.user.findUnique({
@@ -23,7 +24,7 @@ export async function initiate2FA() {
   });
 
   if (user?.twoFactorEnabled) {
-    return { error: "La autenticación de 2 pasos ya está habilitada" };
+    return { error: ErrorCodes.TWO_FA_ALREADY_ENABLED };
   }
 
   try {
@@ -50,12 +51,12 @@ export async function initiate2FA() {
 export async function enable2FA(secret: string, token: string) {
   const session = await auth();
   if (!session?.user?.id || !session?.user?.email) {
-    return { error: "No autorizado" };
+    return { error: ErrorCodes.UNAUTHORIZED };
   }
 
   // Validar entradas
   if (!secret || !token) {
-    return { error: "Secret y código son requeridos" };
+    return { error: ErrorCodes.TWO_FA_SECRET_REQUIRED };
   }
 
   // Verificar código TOTP
@@ -120,11 +121,11 @@ export async function enable2FA(secret: string, token: string) {
 export async function disable2FA(password: string) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { error: "No autorizado" };
+    return { error: ErrorCodes.UNAUTHORIZED };
   }
 
   if (!password) {
-    return { error: "La contraseña es requerida" };
+    return { error: ErrorCodes.PASSWORD_REQUIRED };
   }
 
   const user = await prisma.user.findUnique({
@@ -137,17 +138,17 @@ export async function disable2FA(password: string) {
   });
 
   if (!user?.password) {
-    return { error: "Usuario no tiene contraseña configurada" };
+    return { error: ErrorCodes.TWO_FA_NO_PASSWORD };
   }
 
   if (!user.twoFactorEnabled) {
-    return { error: "2FA no está habilitado" };
+    return { error: ErrorCodes.TWO_FA_NOT_ENABLED };
   }
 
   // Verificar contraseña
   const isValidPassword = await compare(password, user.password);
   if (!isValidPassword) {
-    return { error: "Contraseña incorrecta" };
+    return { error: ErrorCodes.PASSWORD_INCORRECT };
   }
 
   try {
@@ -182,7 +183,7 @@ export async function disable2FA(password: string) {
  */
 export async function verify2FACode(userId: string, token: string) {
   if (!userId || !token) {
-    return { error: "Usuario y código son requeridos" };
+    return { error: ErrorCodes.TWO_FA_SECRET_REQUIRED };
   }
 
   const user = await prisma.user.findUnique({
@@ -259,7 +260,7 @@ export async function verify2FACode(userId: string, token: string) {
     email: user.email,
   });
 
-  return { error: "Código inválido" };
+  return { error: ErrorCodes.INVALID_CODE };
 }
 
 /**
@@ -268,7 +269,7 @@ export async function verify2FACode(userId: string, token: string) {
 export async function get2FAStatus() {
   const session = await auth();
   if (!session?.user?.id) {
-    return { error: "No autorizado" };
+    return { error: ErrorCodes.UNAUTHORIZED };
   }
 
   const user = await prisma.user.findUnique({
@@ -280,7 +281,7 @@ export async function get2FAStatus() {
   });
 
   if (!user) {
-    return { error: "Usuario no encontrado" };
+    return { error: ErrorCodes.USER_NOT_FOUND };
   }
 
   return {

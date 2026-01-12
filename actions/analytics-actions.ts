@@ -97,7 +97,10 @@ export async function getAnalytics(
       where: whereClause,
       orderBy: { createdAt: "desc" },
       take: 5,
-      include: { user: { select: { name: true, email: true } } },
+      include: {
+        user: { select: { name: true, email: true } },
+        assignedTo: { select: { name: true, email: true } },
+      },
     }),
   ]);
 

@@ -66,6 +66,22 @@ async function main() {
   });
 
   // Gerentes - asignados a Soporte (departamento principal para supervisión)
+  await prisma.user.upsert({
+    where: { email: "admin@multicomputos.com" },
+    update: {
+      role: "MANAGER",
+      departmentId: deptApplication.id,
+      password: passwordHash,
+    },
+    create: {
+      email: "admin@multicomputos.com",
+      name: "Admin System",
+      password: passwordHash,
+      role: "MANAGER",
+      departmentId: deptApplication.id,
+    },
+  });
+
   const admin = await prisma.user.upsert({
     where: { email: "ing.espinosareyes@gmail.com" },
     update: {
@@ -715,6 +731,26 @@ Para asistencia con facturación electrónica:
   const mcSupportArticles = [
     // --- MANUAL CLIENTE ---
     {
+      title: "Cómo usar el Modo Vacaciones",
+      slug: "como-usar-modo-vacaciones",
+      content: `# Modo Vacaciones 🌴
+
+El **Modo Vacaciones** permite a los agentes pausar su asignación automática de tickets durante ausencias.
+
+## Activación
+
+1. Vaya a **Settings** > **System Configuration**.
+2. Busque la sección **Vacation Mode**.
+3. Seleccione la **Fecha de Inicio** y **Fecha de Fin**.
+   - *Nota*: El calendario se cerrará automáticamente al seleccionar un día.
+4. (Opcional) Escriba un mensaje de autorespuesta.
+5. Pulse **Activate**.
+
+## Desactivación
+
+El modo se desactivará automáticamente al llegar la fecha fin, o puede pulsar **Deactivate** manualmente.`,
+    },
+    {
       title: "Guía del Portal de Cliente",
       slug: "guia-portal-cliente",
       content: `# Manual del Cliente: Portal de Autoservicio 🌟
@@ -1188,7 +1224,6 @@ Si perdió su teléfono:
         title: art.title,
         content: art.content,
         isPublished: true,
-        // @ts-expect-error isInternal exists in schema
         isInternal: !!art.isInternal,
       },
       create: {
@@ -1196,7 +1231,6 @@ Si perdió su teléfono:
         slug: art.slug,
         content: art.content,
         isPublished: true,
-        // @ts-expect-error isInternal exists in schema
         isInternal: !!art.isInternal,
         categoryId: categoryMCSupport.id,
         authorId: admin.id,

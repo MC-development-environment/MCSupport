@@ -11,6 +11,7 @@ import { sendEmail, BASE_URL } from "@/lib/email-service";
 import { welcomeWithPasswordEmail } from "@/lib/email-templates";
 
 import { Prisma, UserRole } from "@prisma/client";
+import { ErrorCodes } from "@/lib/error-codes";
 
 const UserSchema = z.object({
   id: z.string().optional(),
@@ -148,12 +149,12 @@ export async function upsertUser(values: z.infer<typeof UserSchema>) {
   const session = await auth();
   // Solo MANAGER puede gestionar usuarios
   if (session?.user?.role !== "MANAGER") {
-    return { error: "No tiene permisos para administrar usuarios." };
+    return { error: ErrorCodes.PERMISSION_DENIED };
   }
 
   const validated = UserSchema.safeParse(values);
   if (!validated.success) {
-    return { error: "Datos inválidos" };
+    return { error: ErrorCodes.INVALID_DATA };
   }
 
   const {
@@ -194,8 +195,7 @@ export async function upsertUser(values: z.infer<typeof UserSchema>) {
       });
     } else {
       // Crear
-      if (!password)
-        return { error: "Contraseña requerida para nuevos usuarios" };
+      if (!password) return { error: ErrorCodes.PASSWORD_REQUIRED };
 
       // Verificar existencia
       const existing = await prisma.user.findUnique({ where: { email } });
@@ -245,7 +245,7 @@ export async function upsertUser(values: z.infer<typeof UserSchema>) {
   } catch (error: any) {
     console.error("Upsert error:", error);
     if (error.code === "P2002") {
-      return { error: "El correo ya está registrado en el sistema." };
+      return { error: ErrorCodes.EMAIL_EXISTS };
     }
     return { error: `Error detalle: ${error.message}` };
   }
@@ -253,7 +253,7 @@ export async function upsertUser(values: z.infer<typeof UserSchema>) {
 
 export async function updateProfile(data: { name: string; password?: string }) {
   const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
+  if (!session?.user?.id) return { error: ErrorCodes.UNAUTHORIZED };
 
   try {
     const updateData: Record<string, unknown> = { name: data.name };

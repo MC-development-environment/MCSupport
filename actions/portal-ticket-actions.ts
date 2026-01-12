@@ -10,6 +10,7 @@ import { sendEmail, BASE_URL } from "@/lib/email-service";
 import { ticketCreatedEmail } from "@/lib/email-templates";
 import { AssistantService } from "@/lib/lau";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { ErrorCodes } from "@/lib/error-codes";
 
 const TicketSchema = z.object({
   title: z
@@ -27,7 +28,7 @@ export async function createTicket(
 ): Promise<{ success: boolean; error: string | null; ticketId?: string }> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "No autorizado" };
+    return { success: false, error: ErrorCodes.UNAUTHORIZED };
   }
 
   // Límite de tasa: Verificar tickets recientes de este usuario
@@ -255,7 +256,7 @@ export async function createTicket(
 export async function closeTicketByClient(ticketId: string) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "No autorizado" };
+    return { success: false, error: ErrorCodes.UNAUTHORIZED };
   }
 
   try {
@@ -266,7 +267,7 @@ export async function closeTicketByClient(ticketId: string) {
     });
 
     if (!ticket || ticket.userId !== session.user.id) {
-      return { success: false, error: "No autorizado para cerrar este ticket" };
+      return { success: false, error: ErrorCodes.NO_CLOSE_PERMISSION };
     }
 
     // Solo se puede cerrar si está en WAITING_CUSTOMER
@@ -341,13 +342,13 @@ export async function closeTicketByClient(ticketId: string) {
     return { success: true };
   } catch (error) {
     console.error("Failed to close ticket:", error);
-    return { success: false, error: "Error al cerrar el ticket" };
+    return { success: false, error: ErrorCodes.CLOSE_TICKET_FAILED };
   }
 }
 export async function reopenTicketByClient(ticketId: string, reason: string) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "No autorizado" };
+    return { success: false, error: ErrorCodes.UNAUTHORIZED };
   }
 
   try {
@@ -364,7 +365,7 @@ export async function reopenTicketByClient(ticketId: string, reason: string) {
     }
 
     if (ticket.status !== "CLOSED" && ticket.status !== "RESOLVED") {
-      return { success: false, error: "El ticket no está cerrado" };
+      return { success: false, error: ErrorCodes.TICKET_NOT_CLOSED };
     }
 
     // Actualizar estado a OPEN
@@ -413,7 +414,7 @@ export async function reopenTicketByClient(ticketId: string, reason: string) {
     return { success: true };
   } catch (error) {
     console.error("Failed to reopen ticket:", error);
-    return { success: false, error: "Error al reabrir el ticket" };
+    return { success: false, error: ErrorCodes.REOPEN_FAILED };
   }
 }
 
@@ -428,7 +429,7 @@ export async function submitSurvey(ticketId: string, formData: FormData) {
   // Ideally authenticated user. If "public" survey, we need token.
   // Assuming logged in user for now.
   if (!session?.user?.id) {
-    return { success: false, error: "Debe iniciar sesión" };
+    return { success: false, error: ErrorCodes.LOGIN_REQUIRED };
   }
 
   const rawData = {
@@ -438,7 +439,7 @@ export async function submitSurvey(ticketId: string, formData: FormData) {
 
   const validation = SurveySchema.safeParse(rawData);
   if (!validation.success) {
-    return { success: false, error: "Datos inválidos" };
+    return { success: false, error: ErrorCodes.INVALID_DATA };
   }
 
   const { rating, comment } = validation.data;
@@ -450,7 +451,7 @@ export async function submitSurvey(ticketId: string, formData: FormData) {
     });
 
     if (!ticket || ticket.userId !== session.user.id) {
-      return { success: false, error: "No autorizado" };
+      return { success: false, error: ErrorCodes.UNAUTHORIZED };
     }
 
     // Verificar si ya existe encuesta
@@ -459,7 +460,7 @@ export async function submitSurvey(ticketId: string, formData: FormData) {
     });
 
     if (existing) {
-      return { success: false, error: "Ya has completado esta encuesta" };
+      return { success: false, error: ErrorCodes.ALREADY_COMPLETED };
     }
 
     await prisma.survey.create({
@@ -475,6 +476,6 @@ export async function submitSurvey(ticketId: string, formData: FormData) {
     return { success: true };
   } catch (error) {
     console.error("Error submitting survey", error);
-    return { success: false, error: "Error al guardar encuesta" };
+    return { success: false, error: ErrorCodes.SAVE_SURVEY_FAILED };
   }
 }
