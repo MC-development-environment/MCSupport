@@ -20,6 +20,17 @@ const settingsSchema = z.object({
   slaHigh: z.coerce.number().min(1),
   slaCritical: z.coerce.number().min(1),
   workDays: z.array(z.string()),
+  // Automated Reports
+  automatedReportsEnabled: z.boolean().optional(),
+  reportFrequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "ANNUAL"]).optional(),
+  reportRecipients: z.array(z.string()).optional(),
+});
+
+const reportSettingsSchema = z.object({
+  id: z.string(),
+  automatedReportsEnabled: z.boolean(),
+  reportFrequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "ANNUAL"]),
+  reportRecipients: z.array(z.string()),
 });
 
 export type SettingsFormData = z.infer<typeof settingsSchema>;
@@ -61,13 +72,17 @@ export async function getSystemConfig() {
     slaHigh: config.slaHigh ?? 8,
     slaCritical: config.slaCritical ?? 4,
     workDays: config.workDays ?? ["1", "2", "3", "4", "5"],
+    automatedReportsEnabled: config.automatedReportsEnabled ?? false,
+    reportFrequency: config.reportFrequency ?? "WEEKLY",
+    reportRecipients: config.reportRecipients ?? [],
   };
 }
 
 export async function updateSystemConfig(data: SettingsFormData) {
   const session = await auth();
 
-  if (!session || session.user.role !== "MANAGER") {
+  const fullAccessRoles = ["ROOT", "ADMIN", "MANAGER"];
+  if (!session || !fullAccessRoles.includes(session.user.role || "")) {
     return { error: "Unauthorized" };
   }
 
@@ -101,5 +116,39 @@ export async function updateSystemConfig(data: SettingsFormData) {
   } catch (error) {
     console.error("Failed to update settings:", error);
     return { error: "Failed to update settings" };
+  }
+}
+
+export async function updateReportSettings(
+  data: z.infer<typeof reportSettingsSchema>
+) {
+  const session = await auth();
+
+  const fullAccessRoles = ["ROOT", "ADMIN", "MANAGER"];
+  if (!session || !fullAccessRoles.includes(session.user.role || "")) {
+    return { error: "Unauthorized" };
+  }
+
+  const result = reportSettingsSchema.safeParse(data);
+  if (!result.success) {
+    return { error: "Invalid data" };
+  }
+
+  try {
+    await prisma.systemConfig.update({
+      where: { id: data.id },
+      data: {
+        automatedReportsEnabled: data.automatedReportsEnabled,
+        reportFrequency: data.reportFrequency,
+        reportRecipients: data.reportRecipients,
+        updatedBy: session.user.email,
+      },
+    });
+
+    revalidatePath("/admin/settings");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update report settings:", error);
+    return { error: "Failed to update report settings" };
   }
 }

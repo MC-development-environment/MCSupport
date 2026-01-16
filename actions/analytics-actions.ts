@@ -55,7 +55,11 @@ export async function getAnalytics(
     whereClause.assignedToId = userId;
   }
 
-  if (session.user.role !== "MANAGER") {
+  if (
+    session.user.role !== "MANAGER" &&
+    session.user.role !== "ROOT" &&
+    session.user.role !== "ADMIN"
+  ) {
     whereClause.OR = [
       { userId: session.user.id },
       { assignedToId: session.user.id },

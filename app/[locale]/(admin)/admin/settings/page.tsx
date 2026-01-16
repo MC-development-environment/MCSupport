@@ -4,6 +4,8 @@ import { SettingsForm } from "@/components/admin/settings-form";
 import { ProfileForm } from "@/components/admin/profile-form";
 import { TwoFactorSetup } from "@/components/settings/two-factor-setup";
 import { VacationToggle } from "@/components/admin/vacation-toggle";
+import { AutomatedReportsSettings } from "@/components/admin/settings/automated-reports-settings";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -38,7 +40,8 @@ export default async function SettingsPage() {
     workDays: config.workDays,
   };
 
-  const isManager = session.user.role === "MANAGER";
+  const fullAccessRoles = ["ROOT", "ADMIN", "MANAGER"];
+  const isManager = fullAccessRoles.includes(session.user.role || "");
   const isInternalUser = session.user.role !== "CLIENT";
 
   return (
@@ -81,8 +84,16 @@ export default async function SettingsPage() {
         </TabsContent>
 
         {isManager && (
-          <TabsContent value="system">
+          <TabsContent value="system" className="space-y-6">
             <SettingsForm initialData={initialData} />
+
+            <AutomatedReportsSettings
+              initialConfig={config}
+              availableUsers={await prisma.user.findMany({
+                where: { role: { not: "CLIENT" } },
+                select: { id: true, name: true, email: true, role: true },
+              })}
+            />
           </TabsContent>
         )}
       </Tabs>

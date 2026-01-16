@@ -64,7 +64,7 @@ export function LoginForm() {
       }
 
       if (result?.success) {
-        if (result.role === "CLIENT" || result.role === "USER") {
+        if ((result.role as string) === "CLIENT") {
           // Assuming CLIENT or USER role
           router.push("/portal");
         } else {
@@ -89,6 +89,7 @@ export function LoginForm() {
         return {};
       }
     } catch (e) {
+      console.log(e);
       return { error: t("error") };
     }
     return { error: t("error") };

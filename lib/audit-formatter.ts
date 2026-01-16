@@ -48,8 +48,9 @@ function t(
 ): string {
   if (!key) return "N/A";
   const map = translations[group];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const entry = map[key] || (map as any)[key.toUpperCase()];
+  const entry =
+    (map as Record<string, { es: string; en: string }>)[key] ||
+    (map as Record<string, { es: string; en: string }>)[key.toUpperCase()];
   return entry ? entry[locale] : key;
 }
 

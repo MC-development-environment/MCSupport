@@ -4,8 +4,7 @@ export async function register() {
   await import("./lib/env");
 }
 
-// onRequestError hook is optional, removing Sentry integration
-export async function onRequestError(err: any, request: any, context: any) {
-  // Error logging logic can be added here if needed, e.g. console.error
+export async function onRequestError(err: any, _request: any, _context: any) {
+  // Error logging logic can be added here if needed
   console.error("Instrumentation error:", err);
 }

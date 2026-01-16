@@ -1,0 +1,5 @@
+{"level":"info","message":"[Cron] Starting auto-followup process","timestamp":"2026-01-14T23:21:12.058Z"}
+{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<508dcbbd-dab0-f843-3f59-baef204242bc@gmail.com>","subject":"Recordatorio: Ticket #NS-IMP-002","timestamp":"2026-01-14T23:21:13.576Z","to":"client@hidalgos.com"}
+{"level":"info","message":"[LAU] Sent reminder for ticket NS-IMP-002","timestamp":"2026-01-14T23:21:13.583Z"}
+{"closed":0,"errors":0,"level":"info","message":"[LAU] Auto-followup completed","reminders":1,"timestamp":"2026-01-14T23:21:13.646Z","warnings":0}
+{"closed":0,"errors":0,"level":"info","message":"[Cron] Auto-followup completed","reminders":1,"timestamp":"2026-01-14T23:21:13.652Z","warnings":0}

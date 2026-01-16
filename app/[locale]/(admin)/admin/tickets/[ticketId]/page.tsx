@@ -78,8 +78,9 @@ export default async function TicketDetailPage({ params }: Props) {
     return <div>Ticket not found</div>;
   }
 
-  // Access Control
-  if (session?.user?.role !== "MANAGER") {
+  // Access Control - ROOT, ADMIN, and MANAGER can see all tickets
+  const fullAccessRoles = ["ROOT", "ADMIN", "MANAGER"];
+  if (!fullAccessRoles.includes(session?.user?.role || "")) {
     const isOwner = ticket.userId === session?.user?.id;
     const isAssigned = ticket.assignedToId === session?.user?.id;
 
@@ -116,10 +117,12 @@ export default async function TicketDetailPage({ params }: Props) {
     });
 
     if (currentUser) {
-      const isManager = currentUser.role === "MANAGER";
+      const isSuperUser = ["ROOT", "ADMIN", "MANAGER"].includes(
+        currentUser.role || ""
+      );
       const isServiceOfficer = currentUser.role === "SERVICE_OFFICER";
 
-      if (isManager || isServiceOfficer) {
+      if (isSuperUser || isServiceOfficer) {
         // MANAGER y SERVICE_OFFICER pueden asignar a cualquier colaborador
         agentWhereClause = {
           role: {
@@ -401,9 +404,10 @@ export default async function TicketDetailPage({ params }: Props) {
                     {t("category")}
                   </span>
                   <div className="flex items-center gap-2">
-                    {/* Manager/Team Lead can edit category */}
-                    {(session?.user?.role === "MANAGER" ||
-                      session?.user?.role === "TEAM_LEAD") &&
+                    {/* Manager/Team Lead/Admin/Root can edit category */}
+                    {["ROOT", "ADMIN", "MANAGER", "TEAM_LEAD"].includes(
+                      session?.user?.role || ""
+                    ) &&
                     ticket.status !== "CLOSED" &&
                     ticket.status !== "RESOLVED" ? (
                       <CategoryEditor

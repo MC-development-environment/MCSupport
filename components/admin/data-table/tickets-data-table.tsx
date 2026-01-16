@@ -88,8 +88,6 @@ export function TicketsDataTable({
 
   const isAllSelected =
     tickets.length > 0 && selectedIds.size === tickets.length;
-  const isIndeterminate =
-    selectedIds.size > 0 && selectedIds.size < tickets.length;
 
   // Bulk Actions
   const handleBulkStatus = (status: string) => {

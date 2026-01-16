@@ -115,7 +115,7 @@ export async function activateVacationMode(
 
       // Enviar email al receptor de tickets
       const ticketList = user.assignedCases.map((t) => ({
-        number: t.number,
+        number: t.ticketNumber,
         title: t.title,
         priority: t.priority,
       }));
@@ -140,10 +140,10 @@ export async function activateVacationMode(
           if (ticket.user?.email) {
             await sendEmail({
               to: ticket.user.email,
-              subject: `ℹ️ Tu ticket #${ticket.number} ha sido reasignado`,
+              subject: `ℹ️ Tu ticket #${ticket.ticketNumber} ha sido reasignado`,
               body: vacationClientNotificationEmail(
                 ticket.user.name || ticket.user.email,
-                ticket.number,
+                ticket.ticketNumber,
                 ticket.title,
                 reassignTo.name || reassignTo.email,
                 params.message,
@@ -165,7 +165,7 @@ export async function activateVacationMode(
         params.startDate,
         params.endDate,
         reassignedCount,
-        reassignTo?.name,
+        reassignTo?.name || undefined,
         "es" // Los colaboradores internos usan español
       ),
     });
@@ -185,7 +185,7 @@ export async function activateVacationMode(
     return {
       success: true,
       reassignedCount,
-      reassignedTo: reassignTo?.name,
+      reassignedTo: reassignTo?.name || undefined,
     };
   } catch (error) {
     console.error("Error activating vacation mode:", error);

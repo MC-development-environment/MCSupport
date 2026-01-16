@@ -6,12 +6,12 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { sendEmail, BASE_URL } from "@/lib/email-service";
 import { logger } from "@/lib/logger";
-import { statusChangeEmail, assignedEmail } from "@/lib/email-templates";
 
 import { logActivity, AuditAction, AuditEntity } from "@/lib/audit-service";
 import { ErrorCodes } from "@/lib/error-codes";
 import { z } from "zod";
 import { CaseStatus, Priority } from "@prisma/client";
+import { assignedEmail } from "@/lib/email-templates";
 
 export async function updateTicketStatus(ticketId: string, newStatus: string) {
   const session = await auth(); // Verificar autorización
@@ -111,7 +111,6 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
       });
 
       if (assignee?.email) {
-        const { assignedEmail } = await import("@/lib/email-templates"); // Reuse assigned template or create specific one
         await sendEmail({
           to: assignee.email,
           subject: `Ticket Reabierto #${ticket.ticketNumber}`,
@@ -134,6 +133,7 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
       const subjectText =
         lang === "en" ? "Ticket Update" : "Actualización de Ticket";
 
+      const { statusChangeEmail } = await import("@/lib/email-templates");
       await sendEmail({
         to: recipients.to,
         cc: recipients.cc,
@@ -194,7 +194,6 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
         }
 
         if (leaderEmail) {
-          const { statusChangeEmail } = await import("@/lib/email-templates"); // Reusing status template or create new one
           await sendEmail({
             to: leaderEmail,
             subject: `[Supervisión] Ticket Cerrado #${ticket.ticketNumber}`,
@@ -255,9 +254,24 @@ export async function assignTicket(ticketId: string, assigneeId: string) {
   try {
     const assignee = await prisma.user.findUnique({
       where: { id: assigneeId },
-      select: { id: true, email: true, name: true, isOnVacation: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isOnVacation: true,
+        role: true,
+      },
     });
     if (!assignee) return { success: false, error: ErrorCodes.USER_NOT_FOUND };
+
+    // Validar que el usuario no sea ROOT/ADMIN (No operativos)
+    if (assignee.role === "ROOT" || assignee.role === "ADMIN") {
+      return {
+        success: false,
+        error:
+          "No se puede asignar tickets a usuarios con rol administrativo (ROOT/ADMIN).",
+      };
+    }
 
     // Validar que el usuario no esté de vacaciones
     if (assignee.isOnVacation) {
@@ -639,7 +653,6 @@ export async function reopenTicket(
 
     // Notificar al Nuevo Asignado
     if (newAssignee.email) {
-      const { assignedEmail } = await import("@/lib/email-templates");
       await sendEmail({
         to: newAssignee.email,
         subject: `Ticket Reabierto y Asignado #${ticket.ticketNumber}`,

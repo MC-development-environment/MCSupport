@@ -25,7 +25,15 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { Loader2, CheckCircle2, AlertCircle, Ticket } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Ticket,
+  TrendingUp,
+  BarChart3,
+  Clock,
+} from "lucide-react";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { useTranslations, useLocale } from "next-intl";
@@ -140,6 +148,41 @@ const getGradient = (type: string, value: number) => {
   }
 };
 
+// Componente de estado vacío reutilizable - definido fuera del render
+const EmptyState = ({
+  icon: Icon,
+  title,
+  description,
+  color = "emerald",
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  color?: "emerald" | "blue" | "orange";
+}) => {
+  const gradients = {
+    emerald: "from-emerald-500/20 to-emerald-500/5",
+    blue: "from-blue-500/20 to-blue-500/5",
+    orange: "from-orange-500/20 to-orange-500/5",
+  };
+  const iconColors = {
+    emerald: "text-emerald-500/50",
+    blue: "text-blue-500/50",
+    orange: "text-orange-500/50",
+  };
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-center py-8">
+      <div
+        className={`rounded-full bg-gradient-to-br ${gradients[color]} p-6 mb-4`}
+      >
+        <Icon className={`h-12 w-12 ${iconColors[color]}`} />
+      </div>
+      <p className="text-muted-foreground font-medium">{title}</p>
+      <p className="text-xs text-muted-foreground/70 mt-1">{description}</p>
+    </div>
+  );
+};
+
 interface AnalyticsDashboardProps {
   userId?: string;
 }
@@ -185,6 +228,11 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps = {}) {
     value: item.value,
     originalName: item.name,
   }));
+
+  // Helper para detectar si hay datos en los gráficos
+  const hasStatusData = statusData.some((s) => s.value > 0);
+  const hasPriorityData = priorityData.some((p) => p.value > 0);
+  const hasRecentTickets = data.recent.length > 0;
 
   return (
     <div className="space-y-4 relative">
@@ -426,25 +474,34 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps = {}) {
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={statusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {hasStatusData ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <EmptyState
+                    icon={TrendingUp}
+                    title={t("noData")}
+                    description={t("noDataDesc")}
+                    color="emerald"
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -459,28 +516,37 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps = {}) {
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={priorityData}
-                    layout="vertical"
-                    margin={{ left: 40 }}
-                  >
-                    <XAxis type="number" hide />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      fontSize={12}
-                      width={100}
-                    />
-                    <Tooltip cursor={{ fill: "transparent" }} />
-                    <Bar
-                      dataKey="value"
-                      fill="#f97316"
-                      radius={[0, 4, 4, 0]}
-                      barSize={20}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                {hasPriorityData ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={priorityData}
+                      layout="vertical"
+                      margin={{ left: 40 }}
+                    >
+                      <XAxis type="number" hide />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        fontSize={12}
+                        width={100}
+                      />
+                      <Tooltip cursor={{ fill: "transparent" }} />
+                      <Bar
+                        dataKey="value"
+                        fill="#f97316"
+                        radius={[0, 4, 4, 0]}
+                        barSize={20}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <EmptyState
+                    icon={BarChart3}
+                    title={t("noData")}
+                    description={t("noDataDesc")}
+                    color="orange"
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -491,40 +557,51 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps = {}) {
               <CardTitle>{t("recentTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {data.recent.map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className="flex items-center gap-2 border-b pb-2 last:border-0"
-                  >
-                    <div className="grid gap-1 flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {ticket.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {ticket.user.email} •{" "}
-                        {format(new Date(ticket.createdAt), "dd MMM HH:mm", {
-                          locale: dateLocale,
-                        })}
-                      </p>
-                    </div>
-                    <div className="w-[100px] flex justify-center shrink-0">
-                      <div
-                        className={`text-xs font-bold px-2 py-1 rounded-full ${getStatusColor(
-                          ticket.status
-                        )}`}
-                      >
-                        {tEnums(`Status.${ticket.status}`)}
+              {hasRecentTickets ? (
+                <div className="space-y-4">
+                  {data.recent.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className="flex items-center gap-2 border-b pb-2 last:border-0"
+                    >
+                      <div className="grid gap-1 flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {ticket.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {ticket.user.email} •{" "}
+                          {format(new Date(ticket.createdAt), "dd MMM HH:mm", {
+                            locale: dateLocale,
+                          })}
+                        </p>
+                      </div>
+                      <div className="w-[100px] flex justify-center shrink-0">
+                        <div
+                          className={`text-xs font-bold px-2 py-1 rounded-full ${getStatusColor(
+                            ticket.status
+                          )}`}
+                        >
+                          {tEnums(`Status.${ticket.status}`)}
+                        </div>
+                      </div>
+                      <div className="w-[120px] text-xs text-muted-foreground text-right truncate shrink-0">
+                        {ticket.assignedTo?.name ||
+                          ticket.assignedTo?.email ||
+                          "Sin asignar"}
                       </div>
                     </div>
-                    <div className="w-[120px] text-xs text-muted-foreground text-right truncate shrink-0">
-                      {ticket.assignedTo?.name ||
-                        ticket.assignedTo?.email ||
-                        "Sin asignar"}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-[260px]">
+                  <EmptyState
+                    icon={Clock}
+                    title={t("noRecentTickets")}
+                    description={t("noRecentTicketsDesc")}
+                    color="blue"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

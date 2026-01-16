@@ -17,6 +17,8 @@ enum UserRole {
   DEVELOPER
   CLIENT
   VIRTUAL_ASSISTANT
+  ROOT
+  ADMIN
 }
 
 model Department {
@@ -267,6 +269,13 @@ enum CaseStatus {
   CLOSED
 }
 
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  ANNUAL
+}
+
 enum Priority {
   LOW
   MEDIUM
@@ -359,6 +368,11 @@ model SystemConfig {
   businessHoursEnd   Int      @default(18)
   workDays           String[] @default(["1", "2", "3", "4", "5"]) // 0=Sun, 1=Mon...
   timeZone           String   @default("America/Santo_Domingo")
+
+  // Automated Reports Configuration
+  automatedReportsEnabled Boolean         @default(false)
+  reportFrequency         ReportFrequency @default(WEEKLY)
+  reportRecipients        String[]        @default([]) // User IDs to receive reports
 
   updatedAt DateTime @updatedAt
   updatedBy String?

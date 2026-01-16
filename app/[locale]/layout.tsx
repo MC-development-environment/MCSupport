@@ -53,10 +53,18 @@ export async function generateMetadata({
     },
 
     icons: {
-      icon: "/icon.png",
-      shortcut: "/icon.png",
-      apple: "/icon.png",
+      icon: [
+        { url: "/MCS192x192.png", sizes: "192x192", type: "image/png" },
+        { url: "/MCS512x512.png", sizes: "512x512", type: "image/png" },
+      ],
+      shortcut: "/MCS192x192.png",
+      apple: [
+        { url: "/MCS120x120.png", sizes: "120x120" },
+        { url: "/MCS192x192.png", sizes: "192x192" },
+        { url: "/Rounded512.png", sizes: "512x512" },
+      ],
     },
+    manifest: "/manifest.json",
     formatDetection: {
       telephone: false,
     },

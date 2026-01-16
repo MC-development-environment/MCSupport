@@ -109,12 +109,106 @@ Al entrar a un ticket:
 ### Flujo de Resolución
 
 1.  **Resolver**: Al marcar un ticket como `RESOLVED`, el cliente recibe una notificación.
-2.  **Auto-Finalización**: Un cron job verifica tickets resueltos hace **más de 24 horas**. Si el cliente no ha interactuado, se cierra automáticamente (`CLOSED`).
-3.  **Encuesta**: Al cerrarse, se envía automáticamente una encuesta al cliente. El resultado se vincula al agente que resolvió el caso.
+2.  **Monitor de Inactividad**: Un cron job verifica tickets en curso (`OPEN`, `IN_PROGRESS`) donde el colaborador no ha enviado mensajes en **48 horas**. Se envía una alerta al técnico para prevenir abandono.
+3.  **Encuesta**: Al cerrarse manualmente, se envía automáticamente una encuesta al cliente.
 
 ---
 
 ## 4. 📖 Base de Conocimiento (KB)
+
+**Ruta**: `/admin/kb`
+
+### Flujo de Publicación
+
+1.  **Borrador (Draft)**: Estado inicial. Solo visible para agentes.
+2.  **Publicado (Published)**: Visible para clientes en el Portal y sugereible por LAU.
+
+### Editor
+
+- Soporta formato **Markdown** básico.
+- **Categoría**: Obligatoria. Se usa para el algoritmo de coincidencia de LAU.
+
+---
+
+## 4.5 🏢 Departamentos
+
+**Ruta**: `/admin/departments`
+
+### Vista General
+
+Tarjetas que muestran cada departamento con:
+
+- **Nombre traducido** (según idioma activo)
+- **Cantidad de usuarios activos**
+- **Link a métricas de rendimiento**
+
+### Detalle del Departamento
+
+**Ruta**: `/admin/departments/[id]`
+
+Incluye:
+
+#### Selector de Período
+
+Dropdown temporal para analizar métricas en rangos específicos:
+
+- **Última semana** (7 días)
+- **Último mes** (30 días)
+- **Último trimestre** (90 días)
+- **Último año** (365 días)
+- **Todo el historial**
+
+#### Tarjetas KPI (con gradientes de color)
+
+| Métrica           | Indicador Visual         |
+| ----------------- | ------------------------ |
+| Tickets Totales   | 🔵 Azul (neutral)        |
+| Tiempo Resolución | 🟢≤8h / 🟠≤24h / 🔴>24h  |
+| CSAT              | 🟢≥4 / 🟠≥3 / 🔴<3       |
+| Tasa Resolución   | 🟢≥80% / 🟠≥50% / 🔴<50% |
+| SLA Compliance    | 🟢≥90% / 🟠≥70% / 🔴<70% |
+
+#### Distribución por Estado (Pie Chart)
+
+- Open, In Progress, Resolved
+
+#### Rendimiento del Equipo Técnico
+
+- Ranking de colaboradores por tickets resueltos
+- **Excluye roles administrativos**: MANAGER, ADMIN, ROOT, VIRTUAL_ASSISTANT
+- Si todos tienen 0 resueltos → Muestra "Sin actividad reciente"
+
+#### Miembros del Equipo
+
+- Lista paginada (10 por página)
+- Muestra: Avatar, Nombre, Email, Rol
+- Navegación: Anterior / Siguiente
+
+---
+
+## 7. ⚙️ Configuración
+
+(...)
+
+3.  **Adjuntos**:
+    - _Máximo por archivo (MB)_: **10MB** por archivo (30MB total).
+    - _Tipos permitidos_: Lista de extensiones (ej. .jpg,.pdf).
+4.  **Reportes Automatizados**:
+    - **Habilitar**: Activa el envío periódico de estadísticas por correo.
+    - **Frecuencia**: Diario, Semanal, Mensual o Anual.
+    - **Destinatarios**: Seleccione usuarios. Managers reciben datos de departamento, Técnicos datos personales.
+5.  **Asistente (LAU)**:
+    - Switch global para activar/desactivar el asistente.
+    - Nombre del asistente: Personalización del nombre en correos.
+6.  **SLA Targets**:
+    - Definición de horas por prioridad (Low, Medium, High, Critical).
+7.  **Horario de Trabajo**:
+    - Definición de hora inicio/fin y días laborales. Afecta el cálculo de fechas de vencimiento.
+8.  **Modo Vacaciones**:
+    - Permite a los agentes marcar un periodo de ausencia.
+    - **Comportamiento**:
+      - Si la fecha fin es menor que la inicio, se resetea automáticamente.
+      - Los tickets asignados durante este periodo pueden reasignarse automáticamente si se configura.
 
 **Ruta**: `/admin/kb`
 
@@ -213,14 +307,18 @@ Configuración global almacenada en base de datos:
 3.  **Adjuntos**:
     - _Máximo por archivo (MB)_: **10MB** por archivo (30MB total).
     - _Tipos permitidos_: Lista de extensiones (ej. .jpg,.pdf).
-4.  **Asistente (LAU)**:
+4.  **Reportes Automatizados**:
+    - **Habilitar**: Activa el envío periódico de estadísticas por correo.
+    - **Frecuencia**: Diario, Semanal, Mensual o Anual.
+    - **Destinatarios**: Seleccione usuarios. Managers reciben datos de departamento, Técnicos datos personales.
+5.  **Asistente (LAU)**:
     - Switch global para activar/desactivar el asistente.
     - Nombre del asistente: Personalización del nombre en correos.
-5.  **SLA Targets**:
+6.  **SLA Targets**:
     - Definición de horas por prioridad (Low, Medium, High, Critical).
-6.  **Horario de Trabajo**:
+7.  **Horario de Trabajo**:
     - Definición de hora inicio/fin y días laborales. Afecta el cálculo de fechas de vencimiento.
-7.  **Modo Vacaciones**:
+8.  **Modo Vacaciones**:
     - Permite a los agentes marcar un periodo de ausencia.
     - **Comportamiento**:
       - Si la fecha fin es menor que la inicio, se resetea automáticamente.

@@ -32,14 +32,17 @@ export async function getUsers(
 ) {
   const skip = (page - 1) * limit;
 
-  const where: Prisma.UserWhereInput = query
-    ? {
-        OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          { email: { contains: query, mode: "insensitive" } },
-        ],
-      }
-    : {};
+  const where: Prisma.UserWhereInput = {
+    role: { notIn: ["ROOT", "ADMIN"] as UserRole[] }, // Exclude superusers from list
+    ...(query
+      ? {
+          OR: [
+            { name: { contains: query, mode: "insensitive" } },
+            { email: { contains: query, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
 
   let orderBy: Prisma.UserOrderByWithRelationInput = { name: "asc" };
 
@@ -147,8 +150,12 @@ export const getAllSkills = unstable_cache(
 
 export async function upsertUser(values: z.infer<typeof UserSchema>) {
   const session = await auth();
-  // Solo MANAGER puede gestionar usuarios
-  if (session?.user?.role !== "MANAGER") {
+  const currentUserRole = session?.user?.role;
+  const isSuperUser = currentUserRole === "ROOT" || currentUserRole === "ADMIN";
+  const isManager = currentUserRole === "MANAGER";
+
+  // Solo MANAGER, ADMIN o ROOT puede gestionar usuarios
+  if (!isManager && !isSuperUser) {
     return { error: ErrorCodes.PERMISSION_DENIED };
   }
 
@@ -167,6 +174,30 @@ export async function upsertUser(values: z.infer<typeof UserSchema>) {
     skills: rawSkills,
   } = validated.data;
   const departmentId = rawDeptId === "none" ? null : rawDeptId;
+
+  // 🛡️ REGLAS DE SEGURIDAD (ROOT/ADMIN)
+
+  // 1. Nadie puede crear o asignar el rol ROOT mediante la aplicación
+  if (role === "ROOT") {
+    return { error: "Operación no permitida: El rol ROOT es inmutable." };
+  }
+
+  // 2. Solo un ADMIN o ROOT puede asignar otro ADMIN
+  if (role === "ADMIN" && !isSuperUser) {
+    return { error: "Solo un Administrador puede asignar el rol ADMIN." };
+  }
+
+  // 3. Protección contra modificación de usuarios ROOT existentes
+  if (id) {
+    const targetUser = await prisma.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
+
+    if (targetUser?.role === "ROOT") {
+      return { error: "No se puede modificar ni editar al usuario ROOT." };
+    }
+  }
 
   // Procesar habilidades: separadas por coma a arreglo, limpias
   const skillsArray = rawSkills

@@ -128,6 +128,37 @@ Protección en memoria (Sliding Window) para prevenir abuso:
   - Max Archivos: **10**.
 - **Almacenamiento**: Cloudinary (vía API).
 
+### 3.5 Métricas de Departamentos (`actions/department-actions.ts`)
+
+Sistema de análisis de rendimiento por departamento con filtro temporal dinámico.
+
+**Períodos Disponibles** (`MetricsPeriod`):
+
+- `week`: Últimos 7 días
+- `month`: Últimos 30 días
+- `quarter`: Últimos 90 días
+- `year`: Últimos 365 días
+- `all`: Todo el historial
+
+**Métricas Calculadas**:
+
+- **Tickets Totales/Resueltos**: Conteo por estado.
+- **Tiempo Promedio Resolución**: (updatedAt - createdAt) para tickets resueltos.
+- **CSAT**: Promedio de ratings de encuestas de satisfacción (1-5).
+- **SLA Compliance**: % de tickets resueltos antes del deadline.
+- **Distribución por Estado**: Pie chart (Open/In Progress/Resolved).
+- **Top Performers**: Ranking de colaboradores por tickets resueltos.
+
+**Exclusión de Roles**:
+Los siguientes roles se excluyen del ranking de rendimiento técnico:
+
+- `MANAGER`, `ADMIN`, `ROOT`, `VIRTUAL_ASSISTANT`, `CLIENT`
+
+Solo se muestran roles operativos (TECHNICIAN, CONSULTANT, DEVELOPER, etc.).
+
+**Traducciones de Nombres**:
+Los nombres de departamentos se traducen dinámicamente usando `Admin.Departments.Names` en los archivos de mensajes.
+
 ---
 
 ## 4. Seguridad 🔐
@@ -174,10 +205,11 @@ Críticos: `DATABASE_URL`, `AUTH_SECRET`, `NETSUITE_API_KEY`, `CLOUDINARY_URL`.
 Endpoint protegido por `CRON_SECRET`.
 
 - `/api/cron/followup`: Ejecutar cada hora.
-  - 48h sin actividad -> Recordatorio.
-- `/api/cron/auto-close`: Ejecutar cada hora.
-  - Cierra tickets `RESOLVED` tras 24h.
-  - Dispara encuesta de satisfacción.
+  - 48h sin actividad de cliente -> Recordatorio.
+- `/api/cron/collaborator-inactivity`: Ejecutar cada hora (o diario).
+  - 48h sin actividad de técnico en tickets activos -> Alerta por email.
+- `/api/cron/automated-reports`: Ejecutar cada hora (Lógica interna valida 9 AM).
+  - Genera reportes de rendimiento según configuración (Diario/Semanal/etc).
 
 ---
 

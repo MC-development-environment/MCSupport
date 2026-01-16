@@ -20,6 +20,16 @@ MCSupport es una plataforma moderna de gestión de tickets y soporte técnico di
 - **Modo Oscuro**: Soporte nativo para temas claro y oscuro.
 - **Modo Vacaciones**: Gestión de ausencias para agentes con reasignación y respuestas automáticas.
 
+## Tareas Programadas (Crons) 🕒
+
+El sistema incluye procesos automáticos vitales que requieren configuración:
+
+1.  **Auto-Seguimiento**: Cierre automático de tickets abandonados por clientes.
+2.  **Alerta de Inactividad**: Notificación a técnicos sobre tickets estancados.
+3.  **Reportes Automatizados**: Envío periódico de estadísticas por correo.
+
+👉 **[Ver Guía de Configuración de Crons](docs/CRON_SETUP.md)** para activarlos.
+
 ## Stack Tecnológico
 
 - **Framework**: Next.js 16 (App Router)

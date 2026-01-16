@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { startOfMonth, subMonths, startOfDay, subDays } from "date-fns";
+import { startOfMonth, subDays, subMonths } from "date-fns";
 import { unstable_cache } from "next/cache";
 
 async function calculateDashboardStats(userId?: string, role?: string) {
-  // 1. Definir filtros basados en Rol
+  // 1. Definir filtros basados en Rol - ROOT, ADMIN y MANAGER ven todos los tickets
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let whereClause: any = {};
-  if (role !== "MANAGER" && userId) {
+  const fullAccessRoles = ["ROOT", "ADMIN", "MANAGER"];
+  if (!fullAccessRoles.includes(role || "") && userId) {
     whereClause = {
       OR: [{ userId: userId }, { assignedToId: userId }],
     };

@@ -1,10 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 export default function Loading() {
   return (
@@ -40,21 +35,41 @@ export default function Loading() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead><Skeleton className="h-4 w-[100px]" /></TableHead>
-                  <TableHead><Skeleton className="h-4 w-[150px]" /></TableHead>
-                  <TableHead><Skeleton className="h-4 w-[100px]" /></TableHead>
-                  <TableHead><Skeleton className="h-4 w-[120px]" /></TableHead>
-                  <TableHead className="text-right"><Skeleton className="h-4 w-[80px]" /></TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-[120px]" />
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Skeleton className="h-4 w-[80px]" />
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[180px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[140px]" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[120px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[180px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[100px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[140px]" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-8 w-8 ml-auto" />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -63,5 +78,5 @@ export default function Loading() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,54 +1,65 @@
-# Guía de Configuración: Cron de Auto-Seguimiento (Railway + GitHub)
+# Guía de Configuración: Tareas Programadas (Crons) 🕒
 
-Esta guía explica cómo configurar el sistema para que LAU revise automáticamente los tickets cada hora, envíe recordatorios y cierre tickets inactivos.
+El sistema utiliza **Cron Jobs** para automatizar el mantenimiento, alertas y reportes. Estos endpoints son invocados periódicamente por un servicio externo (GitHub Actions o EasyCron).
 
-## 1. Configuración en Railway (Variables de Entorno)
+## 📊 Resumen de Tareas
 
-1.  Ve a tu proyecto en **Railway**.
-2.  Selecciona tu servicio (Next.js App).
-3.  Ve a la pestaña **Variables**.
-4.  Agrega una nueva variable (si no existe):
-    - **Clave**: `CRON_SECRET`
-    - **Valor**: Inventa una contraseña segura (ej: `LauAutoSecret_2024_Secure`)
+| Nombre                         | Endpoint                            | Frecuencia  | Descripción                                                                                                   |
+| :----------------------------- | :---------------------------------- | :---------- | :------------------------------------------------------------------------------------------------------------ |
+| **Auto-Followup Cliente**      | `/api/cron/followup`                | Cada hora   | Notifica a clientes que no responden tickets en espera. Cierra automáticamente si se ignora por mucho tiempo. |
+| **Alerta Inactividad Técnico** | `/api/cron/collaborator-inactivity` | Cada hora   | Notifica a los agentes si han dejado un ticket activo "abandonado" por más de 48h.                            |
+| **Reportes Automatizados**     | `/api/cron/automated-reports`       | Cada hora\* | Genera reportes de rendimiento (Diarios, Semanales) según configuración en Admin.                             |
 
-> **Nota**: Copia este valor, lo necesitarás en el siguiente paso.
-
-## 2. Configuración en GitHub (Secrets)
-
-Para que GitHub Actions pueda "despertar" a tu app cada hora, necesita permiso y saber dónde está tu app.
-
-1.  Ve a tu repositorio en **GitHub**.
-2.  Ve a **Settings** (Configuración) → **Secrets and variables** → **Actions**.
-3.  Haz click en **New repository secret** y agrega estas dos variables:
-
-### Variable 1: URL de la App
-
-- **Name**: `APP_URL`
-- **Secret**: La URL pública de tu app en Railway (ej: `https://soporte-production.up.railway.app`)
-  - _Sin barra al final_
-
-### Variable 2: Secreto del Cron
-
-- **Name**: `CRON_SECRET`
-- **Secret**: El mismo valor que pusiste en Railway (ej: `LauAutoSecret_2024_Secure`)
-
-## 3. Verificación
-
-Una vez configurado:
-
-1.  Ve a la pestaña **Actions** en GitHub.
-2.  Verás un workflow llamado **"Ticket Auto-Followup Cron"**.
-3.  Puedes probarlo manualmente:
-    - Selecciona el workflow a la izquierda.
-    - Click en **Run workflow**.
-4.  Si todo está bien, verás un check verde ✅ y en los logs dirá "success".
+_\*Nota: Aunque se ejecuta cada hora, la lógica interna valida si corresponde enviar el reporte (ej. si son las 9:00 AM)._
 
 ---
 
-## ¿Cómo funciona la Lógica?
+## 🚀 Configuración (Paso a Paso)
 
-- **Cada hora**, GitHub visita tu página `/api/cron/followup`.
-- **LAU revisa** los tickets en estado `WAITING_CUSTOMER`:
-  - **48 horas sin actualización**: Envía recordatorio amable.
-  - **6 días sin actualización**: Envía advertencia final (si no ha enviado otra en las últimas 24h).
-  - **7 días sin actualización**: Cierra el ticket automáticamente.
+Para que esto funcione, necesitas configurar **Variables de Entorno** y un **Disparador (Trigger)**.
+
+### 1. Variables de Entorno (Producción)
+
+En tu plataforma de hostin (Railway, Vercel, etc), asegúrate de tener definid:
+
+- `CRON_SECRET`: Una cadena de texto larga y segura. Servirá de contraseña para que nadie más pueda ejecutar tus crons.
+
+```bash
+# Ejemplo de generación
+openssl rand -base64 32
+```
+
+### 2. Configuración del Disparador (GitHub Actions)
+
+Usamos GitHub Actions como "reloj" gratuito para llamar a estos endpoints.
+
+1.  Ve a tu repositorio en **GitHub**.
+2.  Navega a **Settings** → **Secrets and variables** → **Actions**.
+3.  Crea los siguientes **Repository secrets**:
+
+| Nombre        | Valor                                       | Ejemplo                         |
+| :------------ | :------------------------------------------ | :------------------------------ |
+| `APP_URL`     | La URL base de tu aplicación en producción. | `https://soporte.miempresa.com` |
+| `CRON_SECRET` | El mismo valor que definiste en el paso 1.  | `Kj8...`                        |
+
+### 3. Verificar Funcionamiento
+
+1.  Ve a la pestaña **Actions** en GitHub.
+2.  Busca el workflow **"Ticket Auto-Followup Cron"** (este archivo gestiona todas las llamadas).
+3.  Puedes ejecutarlo manualmente con **Run workflow**.
+4.  Si es exitoso, verás un check verde ✅.
+
+---
+
+## 🛠️ Detalles Técnicos
+
+### Seguridad
+
+Todos los endpoints validan que el parámetro `?secret=...` coincida con la variable de entorno `CRON_SECRET`. Si no coinciden, retornan `401 Unauthorized`.
+
+### Lógica de Reportes
+
+El cron de reportes (`automated-reports`) consulta la configuración global del sistema (`SystemConfig`).
+
+- Si `automatedReportsEnabled` es `false`, se omite.
+- Verifica si la hora actual coincide con la hora objetivo (9 AM) y si el día actual coincide con la frecuencia elegida (ej. Lunes para reportes semanales).

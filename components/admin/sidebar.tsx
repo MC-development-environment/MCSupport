@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -35,16 +34,25 @@ export function AdminSidebar({ userRole }: SidebarProps) {
 
   const sidebarLinks = [
     { href: "/admin", label: t("dashboard"), icon: LayoutDashboard },
-    { href: "/admin/dashboard/my-work", label: "My Work", icon: Ticket }, // TODO: Agregar clave de traducción luego si es necesario o codificar por ahora
+    { href: "/admin/dashboard/my-work", label: "My Work", icon: Ticket },
     { href: "/admin/tickets", label: t("tickets"), icon: Ticket },
     { href: "/admin/kb", label: t("kb"), icon: BookOpen },
     { href: "/admin/reports", label: t("reports"), icon: FileText },
+    {
+      href: "/admin/departments",
+      label: t("Departments.title"),
+      icon: Users,
+      role: "MANAGER",
+    },
     { href: "/admin/users", label: t("users"), icon: Users, role: "MANAGER" },
     { href: "/admin/settings", label: t("settings"), icon: Settings },
   ];
 
   const filteredLinks = sidebarLinks.filter(
-    (link) => !link.role || link.role === userRole
+    (link) =>
+      !link.role ||
+      link.role === userRole ||
+      (link.role === "MANAGER" && (userRole === "ROOT" || userRole === "ADMIN"))
   );
 
   const tLayout = useTranslations("Layout");
@@ -107,7 +115,7 @@ export function MobileSidebar({ userRole }: SidebarProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
@@ -116,6 +124,12 @@ export function MobileSidebar({ userRole }: SidebarProps) {
     { href: "/admin/tickets", label: t("tickets"), icon: Ticket },
     { href: "/admin/kb", label: t("kb"), icon: BookOpen },
     { href: "/admin/reports", label: t("reports"), icon: FileText },
+    {
+      href: "/admin/departments",
+      label: t("Departments.title"),
+      icon: Users,
+      role: "MANAGER",
+    },
     { href: "/admin/users", label: t("users"), icon: Users, role: "MANAGER" },
     { href: "/admin/settings", label: t("settings"), icon: Settings },
   ];
@@ -124,9 +138,9 @@ export function MobileSidebar({ userRole }: SidebarProps) {
     (link) => !link.role || link.role === userRole
   );
 
-  if (!isMounted) {
-    return null;
-  }
+  const tLayout = useTranslations("Layout");
+
+  if (!isMounted) return null;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -137,19 +151,15 @@ export function MobileSidebar({ userRole }: SidebarProps) {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col">
-        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Navigation menu for the admin dashboard
-        </SheetDescription>
+        <SheetTitle>Menu</SheetTitle>
+        <SheetDescription>Navegación principal</SheetDescription>
         <nav className="grid gap-2 text-lg font-medium">
           <Link
             href="/"
-            className="flex flex-col items-start gap-0 font-semibold mb-4 hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 text-lg font-semibold mb-4"
+            onClick={() => setOpen(false)}
           >
-            <span className="text-xl font-bold text-primary tracking-tight">
-              MCSupport
-            </span>
-            <span className="h-1 w-2/3 bg-[#f97316] rounded-r-full" />
+            <span className="text-primary">MCSupport</span>
           </Link>
           {filteredLinks.map((link) => {
             const isActive =
@@ -161,7 +171,7 @@ export function MobileSidebar({ userRole }: SidebarProps) {
                 href={link.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground",
+                  "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 transition-all hover:text-foreground",
                   isActive
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground"
@@ -173,6 +183,16 @@ export function MobileSidebar({ userRole }: SidebarProps) {
             );
           })}
         </nav>
+        <div className="mt-auto">
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={() => signOut()}
+          >
+            <LogOut className="h-4 w-4" />
+            {tLayout("logout")}
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );

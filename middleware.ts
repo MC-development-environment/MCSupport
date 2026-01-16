@@ -24,6 +24,6 @@ export default auth(async (req) => {
 export const config = {
   // Matcher: Excluir api, estáticos, imágenes, favicon, manifest, workers, imágenes y subidas
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*|uploads|.*\\.png$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*|uploads|.*\\.png$|.*\\.svg$).*)",
   ],
 };

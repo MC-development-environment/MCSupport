@@ -35,8 +35,12 @@ export default async function AdminPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let whereClause: any = {};
 
-  // Si no es MANAGER, filtrar por propiedad o asignación
-  if (session?.user?.role !== "MANAGER" && session?.user?.id) {
+  // Si no es MANAGER, ADMIN o ROOT, filtrar por propiedad o asignación
+  const fullAccessRoles = ["ROOT", "ADMIN", "MANAGER"];
+  if (
+    !fullAccessRoles.includes(session?.user?.role || "") &&
+    session?.user?.id
+  ) {
     whereClause = {
       OR: [{ userId: session.user.id }, { assignedToId: session.user.id }],
     };

@@ -144,7 +144,6 @@ const errorCodeToI18nKey: Record<ErrorCode, string> = {
  */
 export function translateError(
   error: unknown,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: (key: string) => string,
   fallback?: string
 ): string {

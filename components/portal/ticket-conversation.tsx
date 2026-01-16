@@ -2,7 +2,6 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

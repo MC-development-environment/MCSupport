@@ -69,7 +69,7 @@ async function main() {
   await prisma.user.upsert({
     where: { email: "admin@multicomputos.com" },
     update: {
-      role: "MANAGER",
+      role: "ADMIN",
       departmentId: deptApplication.id,
       password: passwordHash,
     },
@@ -77,23 +77,23 @@ async function main() {
       email: "admin@multicomputos.com",
       name: "Admin System",
       password: passwordHash,
-      role: "MANAGER",
+      role: "ADMIN",
       departmentId: deptApplication.id,
     },
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: "ing.espinosareyes@gmail.com" },
+    where: { email: "ing.multicomputos@gmail.com" },
     update: {
-      role: "MANAGER",
+      role: "ROOT",
       departmentId: deptApplication.id,
       password: passwordHash,
     },
     create: {
-      email: "ing.espinosareyes@gmail.com",
-      name: "Admin",
+      email: "ing.multicomputos@gmail.com",
+      name: "Admin System",
       password: passwordHash,
-      role: "MANAGER",
+      role: "ROOT",
       departmentId: deptApplication.id,
     },
   });
@@ -264,10 +264,10 @@ async function main() {
 
   // --- SEMILLA DE CLIENTES ---
   const clientHidalgos = await prisma.user.upsert({
-    where: { email: "client@hidalgos.com" },
+    where: { email: "ing.espinosareyes@gmail.com" },
     update: { role: "CLIENT", password: passwordHash },
     create: {
-      email: "client@hidalgos.com",
+      email: "ing.espinosareyes@gmail.com",
       name: "Farmacia Los Hidalgos (Cliente)",
       password: passwordHash,
       role: "CLIENT",
@@ -286,10 +286,10 @@ async function main() {
   });
 
   const clientBPD = await prisma.user.upsert({
-    where: { email: "client@bpd.com.do" },
+    where: { email: "invicto230895@gmail.com" },
     update: { role: "CLIENT", password: passwordHash },
     create: {
-      email: "client@bpd.com.do",
+      email: "invicto230895@gmail.com",
       name: "Banco Popular (Cliente)",
       password: passwordHash,
       role: "CLIENT",

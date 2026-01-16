@@ -41,7 +41,7 @@ export const authConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize() {
         // La lógica se maneja en la versión de Node (auth.ts), esto es solo un placeholder de definición
         // O lo definimos aquí si usamos fetch a una API.
         // Pero para override de Prisma, lo dejamos simple aquí.

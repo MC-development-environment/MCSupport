@@ -29,16 +29,16 @@ jobs:
             exit 1
           fi
 
-          echo "Triggering auto-followup at $APP_URL/api/cron/followup..."
+          # 1. Auto-Followup (Cliente no responde)
+          echo "1. Triggering Auto-Followup..."
+          curl -s "$APP_URL/api/cron/followup?secret=$CRON_SECRET"
 
-          response=$(curl -s -w "%{http_code}" -X GET "$APP_URL/api/cron/followup?secret=$CRON_SECRET")
-          http_code=${response: -3}
-          content=${response:0:${#response}-3}
+          # 2. Collaborator Inactivity (Técnico no responde)
+          echo "2. Triggering Collaborator Inactivity Check..."
+          curl -s "$APP_URL/api/cron/collaborator-inactivity?secret=$CRON_SECRET"
 
-          echo "Response code: $http_code"
-          echo "Response content: $content"
+          # 3. Automated Reports (Reportes Diarios/Semanales)
+          echo "3. Triggering Automated Reports..."
+          curl -s "$APP_URL/api/cron/automated-reports?secret=$CRON_SECRET"
 
-          if [ "$http_code" -ne 200 ]; then
-            echo "Failed to trigger cron job"
-            exit 1
-          fi
+          echo "All cron jobs triggered."
