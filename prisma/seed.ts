@@ -65,8 +65,8 @@ async function main() {
     },
   });
 
-  // Gerentes - asignados a Soporte (departamento principal para supervisión)
-  await prisma.user.upsert({
+  // Administrador - asignado a Aplicaciones (departamento principal para supervisión)
+  const admin = await prisma.user.upsert({
     where: { email: "admin@multicomputos.com" },
     update: {
       role: "ADMIN",
@@ -82,7 +82,7 @@ async function main() {
     },
   });
 
-  const admin = await prisma.user.upsert({
+  const root = await prisma.user.upsert({
     where: { email: "ing.multicomputos@gmail.com" },
     update: {
       role: "ROOT",

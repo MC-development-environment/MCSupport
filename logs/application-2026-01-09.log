@@ -1,8 +1,0 @@
-{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<ed60b9ea-979b-94c9-5a68-773baa77ece2@gmail.com>","subject":"Ticket Asignado #CONS-002","timestamp":"2026-01-09T06:23:27.356Z","to":"heri.espinosa@multicomputos.com"}
-{"level":"info","message":"[Ticket] Auto-set to IN_PROGRESS ticket CONS-002 by collaborator response","timestamp":"2026-01-09T06:25:27.181Z"}
-{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<23f01ea8-9ca7-b2ee-c58e-c78390e5fad0@gmail.com>","subject":"Nuevo mensaje en tu ticket #CONS-002","timestamp":"2026-01-09T06:25:29.732Z","to":"espinosa_reyes@hotmail.com"}
-{"level":"info","message":"[Ticket] Sent new message notification to espinosa_reyes@hotmail.com (CC: ) for ticket CONS-002","timestamp":"2026-01-09T06:25:29.733Z"}
-{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<e92a8066-4c2d-836b-ae83-1b32424b5f8a@gmail.com>","subject":"Nuevo mensaje en tu ticket #CONS-002","timestamp":"2026-01-09T06:26:48.028Z","to":"espinosa_reyes@hotmail.com"}
-{"level":"info","message":"[Ticket] Sent new message notification to espinosa_reyes@hotmail.com (CC: ) for ticket CONS-002","timestamp":"2026-01-09T06:26:48.032Z"}
-{"ccCount":0,"level":"info","message":"Email sent successfully","messageId":"<8377be6a-c293-84d4-8530-d0400e4f4bc4@gmail.com>","subject":"Nuevo mensaje en tu ticket #CONS-002","timestamp":"2026-01-09T06:36:16.074Z","to":"espinosa_reyes@hotmail.com"}
-{"level":"info","message":"[Ticket] Sent new message notification to espinosa_reyes@hotmail.com (CC: ) for ticket CONS-002","timestamp":"2026-01-09T06:36:16.081Z"}

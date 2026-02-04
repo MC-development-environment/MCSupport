@@ -22,9 +22,10 @@ enum UserRole {
 }
 
 model Department {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
+  id       String    @id @default(cuid())
+  name     String    @unique
+  users    User[]
+  workLogs WorkLog[]
 }
 
 model AllowedClientEmail {
@@ -69,6 +70,9 @@ model User {
   // 🏷️ Skills for smart ticket assignment
   skills UserSkill[]
 
+  // 🏷️ Skills assigned by this user (hierarchy)
+  assignedSkills UserSkill[] @relation("SkillAssignedBy")
+
   // 🏝️ Estado de Vacaciones
   isOnVacation      Boolean   @default(false)
   vacationStartDate DateTime?
@@ -86,6 +90,7 @@ model User {
   messages        Message[]
   surveysReceived Survey[]     @relation("SurveyResolver")
   assignedByCases Case[]       @relation("AssignedByCases") // Casos asignados por este usuario
+  workLogs        WorkLog[]
 }
 
 // 🏷️ Skill Catalog - Predefined skills managed by admins
@@ -109,6 +114,9 @@ model UserSkill {
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  assignedById String? // User who assigned this skill (for hierarchy verification)
+  assignedBy   User?   @relation("SkillAssignedBy", fields: [assignedById], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -216,6 +224,7 @@ model Case {
   // Survey
   surveyRequestedAt DateTime?
   survey            Survey?
+  workLogs          WorkLog[]
 
   // Performance Indexes
   @@index([status])
@@ -376,4 +385,72 @@ model SystemConfig {
 
   updatedAt DateTime @updatedAt
   updatedBy String?
+}
+
+// ==========================================
+// MÓDULO DE REGISTRO DE ACTIVIDADES (WORKLOG)
+// ==========================================
+
+enum ActivityType {
+  TASK // Tarea general
+  MEETING // Reunión
+  TRAINING // Formación académica
+  INTERNAL_CONSULT // Consultoría interna
+  CLIENT_CONSULT // Consultoría a cliente
+  PROJECT // Trabajo en proyecto
+  SUPPORT // Soporte técnico
+  DEVELOPMENT // Desarrollo
+  CONFERENCE // Conferencia
+  ADMINISTRATIVE // Trabajo administrativo
+  BREAK // Descanso/Pausa
+  OTHER // Otro
+}
+
+enum WorkLogStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model WorkLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        ActivityType
+  title       String // Título breve
+  description String? // Descripción detallada (opcional)
+
+  // Status and Progress
+  status   WorkLogStatus @default(COMPLETED) // Default to COMPLETED for backward compatibility/timers
+  progress Int           @default(100) // 0-100%
+
+  // Department Context
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  // Tiempo
+  startTime DateTime
+  endTime   DateTime? // Null = en progreso
+  duration  Int? // Minutos calculados (para consultas rápidas)
+
+  // Metadata
+  projectName String? // Nombre del proyecto (si aplica)
+  clientName  String? // Nombre del cliente (si aplica)
+  ticketId    String? // Relación opcional con ticket
+  ticket      Case?   @relation(fields: [ticketId], references: [id])
+
+  // Tags para búsqueda
+  tags String[] @default([])
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([startTime])
+  @@index([userId, startTime])
 }
